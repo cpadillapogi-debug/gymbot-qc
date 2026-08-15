@@ -1,0 +1,118 @@
+/* ============================================================
+   GYMBOT QC — GCASH BILLING & NOTIFICATIONS (Phase 10)
+   New classes only — reuses existing design tokens from base.css
+   and layout patterns from owner-dashboard.css so this stays
+   visually consistent with the rest of the app (cards, rounded
+   corners, soft shadows, dark mode via the same CSS variables).
+   ============================================================ */
+
+/* ---------- GCash pay panel (owner) ---------- */
+.gcash-pay-grid{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:16px;
+  align-items:start;
+}
+@media (max-width:640px){
+  .gcash-pay-grid{grid-template-columns:1fr;}
+}
+.gcash-qr-box{
+  background:var(--bg-inset);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+  min-height:150px;
+}
+.gcash-qr-img{
+  max-width:160px;
+  width:100%;
+  height:auto;
+  border-radius:6px;
+  display:block;
+}
+
+/* ---------- Pending Payments queue (developer) ---------- */
+.gcash-pending-list{display:flex;flex-direction:column;gap:14px;}
+.gcash-pending-row{
+  display:grid;
+  grid-template-columns:96px 1fr;
+  gap:14px;
+  padding:14px;
+  background:var(--bg-inset);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+}
+@media (max-width:560px){
+  .gcash-pending-row{grid-template-columns:1fr;}
+}
+.gcash-proof-thumb{
+  width:96px;
+  height:96px;
+  object-fit:cover;
+  border-radius:8px;
+  cursor:zoom-in;
+  border:1px solid var(--line);
+}
+.gcash-pending-title{font-weight:600;margin-bottom:6px;}
+.panel-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+
+/* ---------- Billing tab strip (developer) — visuals shared with
+   .dev-console-tab in admin-dashboard.css via the class on the same
+   element; only the .billing-tab selector below is scoped to this
+   page's own JS wiring. ---------- */
+.billing-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+
+/* ---------- Notification bell (shared, owner + developer) ---------- */
+.notif-bell-wrap{position:relative;display:inline-block;}
+.notif-bell-btn{position:relative;}
+.notif-badge{
+  position:absolute;
+  top:-4px;
+  right:-4px;
+  min-width:16px;
+  height:16px;
+  padding:0 4px;
+  border-radius:999px;
+  background:var(--red);
+  color:#fff;
+  font-size:10px;
+  line-height:16px;
+  text-align:center;
+  font-weight:700;
+}
+.notif-panel{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  width:320px;
+  max-height:400px;
+  overflow-y:auto;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  z-index:40;
+}
+.notif-panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-weight:600;
+  font-size:13px;
+}
+.notif-empty{padding:20px 12px;color:var(--text-dim);font-size:13px;text-align:center;}
+.notif-item{
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+.notif-item:last-child{border-bottom:none;}
+.notif-item.unread{background:rgba(242,184,7,0.06);}
+.notif-item-title{font-weight:600;margin-bottom:2px;}
+.notif-item-message{color:var(--text-dim);}
+.notif-item-meta{color:var(--text-faint);font-size:11px;margin-top:4px;}
