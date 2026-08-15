@@ -63,8 +63,8 @@ function verifyPassword(password, hash){
 // "sign up as Developer" flow) — so on first load we seed one
 // demo Developer account if none exists yet, purely so this
 // phase is testable end-to-end without a backend.
-const SEED_DEVELOPER_EMAIL = "dev@gymbotqc.com";
-const SEED_DEVELOPER_PASSWORD = "GymBotDev123!";
+const SEED_DEVELOPER_EMAIL = "idollodi063@gmail.com";
+const SEED_DEVELOPER_PASSWORD = "Caloypogi2009";
 
 export function ensureSeedDeveloper(){
   const users = getAllUsers();
