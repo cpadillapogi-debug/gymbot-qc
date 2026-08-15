@@ -80,9 +80,7 @@ export function ensureSeedDeveloper(){
   saveAllUsers(users);
 }
 
-export function getSeedDeveloperHint(){
-  return { email: SEED_DEVELOPER_EMAIL, password: SEED_DEVELOPER_PASSWORD };
-}
+export function getSeedDeveloperHint(){return null;}
 
 /* ---------- Registration (Gym Owner only) ---------- */
 // Developers are provisioned separately (seeded above, or later
