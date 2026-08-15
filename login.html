@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Log in — GymBot QC</title>
+<meta name="description" content="Log in to your GymBot QC account.">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<main class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="auth-sub">Log in to manage your gym's AI receptionist.</p>
+
+    <div class="auth-alert" id="loginAlert" role="alert"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="auth-field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" autocomplete="email" required placeholder="you@yourgym.com">
+      </div>
+      <div class="auth-field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required placeholder="••••••••">
+      </div>
+      <label class="auth-remember" for="loginRemember">
+        <input type="checkbox" id="loginRemember">
+        Remember me on this device
+      </label>
+      <button type="submit" class="btn btn-primary auth-submit" id="loginSubmit">
+        Log in
+        <span class="auth-spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <div class="auth-hint" id="devHint"></div>
+
+    <p class="auth-footer-link">Don't have an account? <a href="register.html">Register your gym</a></p>
+  </div>
+</main>
+
+<script type="module" src="js/main-login.js"></script>
+</body>
+</html>
