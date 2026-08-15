@@ -35,9 +35,13 @@ export function initLoginUI(){
   const hintEl = document.getElementById("devHint");
 
   const hint = getSeedDeveloperHint();
-  if(hintEl){
-    hintEl.innerHTML = `Demo Master Admin login — <code>${hint.email}</code> / <code>${hint.password}</code>`;
-  }
+
+if (hint) {
+  devHint.innerHTML = `Demo Master Admin login — <code>${hint.email}</code> / <code>${hint.password}</code>`;
+} else {
+  devHint.innerHTML = "";
+  devHint.style.display = "none";
+}
 
   // Prefill the email field if we redirected here after registering.
   const params = new URLSearchParams(window.location.search);
