@@ -1,0 +1,99 @@
+/* ============================================================
+   GYMBOT QC — ONBOARDING WIZARD (Phase 11)
+   Layout for the 7-step "Getting Started" flow. Builds on
+   auth.css's field styling and components.css's panel/button
+   classes — only wizard-specific chrome (progress rail, step
+   show/hide) lives here.
+   ============================================================ */
+
+.wizard-shell{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 16px 60px;
+}
+.wizard-logo{
+  display:flex;align-items:center;gap:10px;font-family:var(--font-display);
+  font-size:19px;font-weight:700;margin-bottom:22px;
+}
+.wizard-card{
+  width:100%;max-width:640px;
+  background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 26px;
+}
+
+/* ---------- Progress rail ---------- */
+.wizard-progress{
+  display:flex;justify-content:space-between;gap:4px;margin-bottom:28px;
+}
+.wizard-progress-step{
+  flex:1;text-align:center;position:relative;
+}
+.wizard-progress-step .dot{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--bg-inset);border:1px solid var(--line);color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  margin:0 auto 6px;
+}
+.wizard-progress-step .label{font-size:10.5px;color:var(--text-dim);display:none;}
+.wizard-progress-step.active .dot{background:var(--amber);border-color:var(--amber);color:#1a1200;}
+.wizard-progress-step.done .dot{background:var(--green);border-color:var(--green);color:#04240f;}
+.wizard-progress-step.done .dot::after{content:"✓";}
+@media (min-width:560px){
+  .wizard-progress-step .label{display:block;}
+}
+
+/* ---------- Steps ---------- */
+.wizard-step{display:none;}
+.wizard-step.active{display:block;}
+.wizard-step h2{font-family:var(--font-display);font-size:20px;margin:0 0 4px;}
+.wizard-step-sub{color:var(--text-dim);font-size:13.5px;margin:0 0 20px;}
+
+.wizard-field{margin-bottom:16px;}
+.wizard-field label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:5px;}
+.wizard-field input[type="text"],
+.wizard-field input[type="email"],
+.wizard-field input[type="password"],
+.wizard-field textarea,
+.wizard-field select{
+  width:100%;background:var(--bg-inset);border:1px solid var(--line);border-radius:6px;
+  padding:11px 12px;color:var(--text);font-size:14.5px;font-family:inherit;
+}
+.wizard-field textarea{min-height:70px;resize:vertical;}
+.wizard-field input:focus,.wizard-field textarea:focus,.wizard-field select:focus{border-color:var(--amber);}
+.wizard-field-row{display:flex;gap:12px;flex-wrap:wrap;}
+.wizard-field-row .wizard-field{flex:1;min-width:180px;}
+
+.wizard-toggle-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.wizard-toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-dim);}
+.wizard-toggle input{accent-color:var(--amber);width:15px;height:15px;}
+
+.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:24px;}
+.wizard-actions .spacer{flex:1;}
+
+.wizard-alert{
+  font-size:13.5px;padding:10px 12px;border-radius:6px;margin-bottom:16px;display:none;
+}
+.wizard-alert.show{display:block;background:rgba(230,72,63,0.1);color:var(--red);border:1px solid rgba(230,72,63,0.3);}
+.wizard-alert.show.success{background:rgba(62,207,126,0.1);color:var(--green);border-color:rgba(62,207,126,0.3);}
+
+.wizard-review-list{list-style:none;margin:0 0 18px;padding:0;}
+.wizard-review-list li{
+  display:flex;justify-content:space-between;gap:12px;padding:8px 0;
+  border-top:1px solid var(--line);font-size:13.5px;
+}
+.wizard-review-list li span:first-child{color:var(--text-dim);}
+.wizard-review-list a.edit-link{font-size:12px;color:var(--amber);text-decoration:none;margin-left:8px;}
+.wizard-review-list a.edit-link:hover{text-decoration:underline;}
+
+.wizard-ai-preview{
+  background:var(--bg-inset);border:1px solid var(--line);border-radius:6px;
+  padding:12px 14px;font-size:12.5px;white-space:pre-wrap;color:var(--text-dim);
+  max-height:220px;overflow-y:auto;margin:0 0 16px;
+}
+
+.wizard-success{text-align:center;padding:12px 0;}
+.wizard-success .big-check{font-size:48px;line-height:1;margin-bottom:10px;}
+
+.wizard-plan-card{cursor:pointer;transition:border-color 0.15s;}
+.wizard-plan-card:hover{border-color:var(--text-dim);}
+.wizard-plan-card.owner-plan-card-current{box-shadow:0 0 0 1px var(--amber);}
