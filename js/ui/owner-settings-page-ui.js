@@ -14,6 +14,9 @@ import { escapeHtml, generateId } from "../utils.js";
 import { getBusinessSettings, saveBusinessSettings } from "../services/gym-settings-service.js";
 import { FAQ_MAX_COUNT } from "../config.js";
 import { showToast } from "./toast-ui.js";
+import { getGymPlatformConfig, saveGymPlatformConfig } from "../services/gym-config-service.js";
+import { BUSINESS_TYPES } from "../config-business-types.js";
+import { SUPPORTED_COUNTRIES, SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, getCountry } from "../config-globalization.js";
 
 // Phase 12: curated starter questions drawn from common gym-customer
 // inquiries (pricing, policies, facilities, etc.) that this app has no
@@ -96,6 +99,7 @@ export function initOwnerSettingsPage(gymId, hooks = {}){
   onSaved = hooks.onSaved || null;
   const settings = getBusinessSettings(gymId);
   populateForm(settings);
+  initBusinessProfilePanel(gymId);
 
   els.addFaqBtn.addEventListener("click", () => {
     if(faqRows.length >= FAQ_MAX_COUNT){
@@ -240,4 +244,53 @@ function handleSave(){
     showToast("Business settings saved.");
     if(typeof onSaved === "function") onSaved(result.settings);
   }
+}
+
+/* ============================================================
+   Phase 15: Business type & region panel — reads/writes
+   gym-config-service.js's per-gym platform config. Deliberately
+   self-contained (own dropdowns, own save button, own status
+   line) rather than folded into the big form/handleSave() above,
+   so this addition can't affect the existing, already-working
+   settings form in any way.
+   ============================================================ */
+function initBusinessProfilePanel(gymId){
+  const typeSelect = document.getElementById("settingsBusinessType");
+  const countrySelect = document.getElementById("settingsCountry");
+  const currencySelect = document.getElementById("settingsCurrency");
+  const languageSelect = document.getElementById("settingsLanguage");
+  const saveBtn = document.getElementById("settingsBusinessProfileSaveBtn");
+  const statusLine = document.getElementById("settingsBusinessProfileStatusLine");
+  if(!typeSelect || !countrySelect || !currencySelect || !languageSelect || !saveBtn) return;
+
+  typeSelect.innerHTML = BUSINESS_TYPES.map(t => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.label)}</option>`).join("");
+  countrySelect.innerHTML = SUPPORTED_COUNTRIES.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.label)}</option>`).join("");
+  currencySelect.innerHTML = SUPPORTED_CURRENCIES.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.label)} (${escapeHtml(c.symbol)})</option>`).join("");
+  languageSelect.innerHTML = SUPPORTED_LANGUAGES.map(l => `<option value="${escapeHtml(l.code)}">${escapeHtml(l.label)}</option>`).join("");
+
+  const current = getGymPlatformConfig(gymId);
+  typeSelect.value = current.businessTypeId;
+  countrySelect.value = current.countryCode;
+  currencySelect.value = current.currencyCode;
+  languageSelect.value = current.languageCode;
+
+  // Picking a country pre-fills its usual currency/language — the owner
+  // can still override either afterward, this is just a sensible default.
+  countrySelect.addEventListener("change", () => {
+    const country = getCountry(countrySelect.value);
+    currencySelect.value = country.defaultCurrency;
+    languageSelect.value = country.defaultLanguage;
+  });
+
+  saveBtn.addEventListener("click", () => {
+    const saved = saveGymPlatformConfig(gymId, {
+      businessTypeId: typeSelect.value,
+      countryCode: countrySelect.value,
+      currencyCode: currencySelect.value,
+      languageCode: languageSelect.value
+    });
+    statusLine.className = "status-line ok";
+    statusLine.textContent = "Saved.";
+    showToast(`Business profile saved — ${BUSINESS_TYPES.find(t => t.id === saved.businessTypeId).label}.`);
+  });
 }
