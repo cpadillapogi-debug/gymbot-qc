@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Chat — GymBot QC</title>
+<meta name="robots" content="noindex, nofollow">
+<!-- Phase 12: standalone per-gym customer widget. Deliberately no
+     topbar/nav/hero — this page is meant to be opened directly (a
+     link shared on Messenger/Facebook) or dropped into an <iframe>
+     on a gym's own website, so it's just the chat, full height. -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  html, body{height:100%;}
+  body{display:flex; flex-direction:column; background:var(--bg-inset);}
+  .widget-wrap{flex:1; display:flex; padding:0; max-width:480px; width:100%; margin:0 auto;}
+  .widget-wrap .chat-card{flex:1; border-radius:0; border-left:none; border-right:none; height:100%;}
+  #widgetLoading, #widgetUnavailable{margin:auto; text-align:center; padding:24px; color:var(--text-faint); font-size:14px;}
+  #widgetUnavailable{color:var(--text); max-width:360px;}
+  @media (min-width:520px){
+    body{padding:16px;}
+    .widget-wrap .chat-card{border-radius:16px; height:min(640px, 90vh); border-left:1px solid var(--line); border-right:1px solid var(--line);}
+  }
+</style>
+</head>
+<body>
+
+<div class="widget-wrap">
+  <div id="widgetLoading">Loading chat…</div>
+  <div id="widgetUnavailable" hidden></div>
+
+  <article class="chat-card" id="widgetChatCard" aria-label="Gym chat" hidden>
+    <div class="chat-header">
+      <div class="chat-avatar" aria-hidden="true">GB</div>
+      <div class="chat-header-text">
+        <div class="name" id="widgetGymName">GymBot QC</div>
+        <div class="status"><span class="status-dot" id="chatStatusDot" aria-hidden="true"></span> <span id="chatStatusText">Active now</span></div>
+      </div>
+    </div>
+
+    <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Chat conversation"></div>
+
+    <div class="quick-replies" id="quickReplies">
+      <button class="chip" data-msg="Magkano po ang monthly membership?">Membership rates</button>
+      <button class="chip" data-msg="May trainers po ba kayo?">Trainers</button>
+      <button class="chip" data-msg="Pwede po free trial?">Book free trial</button>
+      <button class="chip" data-msg="Anong oras po kayo bukas?">Hours</button>
+    </div>
+
+    <form class="chat-input-row" id="chatForm">
+      <label for="chatInput" class="sr-only">Type a message</label>
+      <input type="text" id="chatInput" maxlength="500" autocomplete="off" placeholder="Type your question...">
+      <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">➤</button>
+    </form>
+  </article>
+</div>
+
+<script type="module" src="js/main-widget.js"></script>
+</body>
+</html>
