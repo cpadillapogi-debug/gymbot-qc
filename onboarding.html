@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Getting Started — GymBot QC</title>
+<meta name="description" content="Set up your gym on GymBot QC in a few guided steps.">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/onboarding.css">
+</head>
+<body>
+
+<main class="wizard-shell">
+  <div class="wizard-logo">
+    <span class="logo-mark" aria-hidden="true">GB</span>
+    <span>GymBot QC — Getting Started</span>
+  </div>
+
+  <div class="wizard-card">
+    <nav class="wizard-progress" id="wizardProgress" aria-label="Setup progress"></nav>
+
+    <div class="wizard-alert" id="wizardAlert" role="alert"></div>
+
+    <!-- Step 1: Create account -->
+    <section class="wizard-step active" id="wizardStep1" aria-labelledby="step1Heading">
+      <h2 id="step1Heading">1. Create your account</h2>
+      <p class="wizard-step-sub">This creates a Gym Owner account, scoped to your gym only.</p>
+      <div class="wizard-field">
+        <label for="wzGymName">Gym name</label>
+        <input type="text" id="wzGymName" autocomplete="organization" placeholder="Commonwealth Fitness Hub">
+      </div>
+      <div class="wizard-field">
+        <label for="wzEmail">Email</label>
+        <input type="email" id="wzEmail" autocomplete="email" placeholder="you@yourgym.com">
+      </div>
+      <div class="wizard-field-row">
+        <div class="wizard-field">
+          <label for="wzPassword">Password</label>
+          <input type="password" id="wzPassword" autocomplete="new-password" placeholder="At least 8 characters">
+        </div>
+        <div class="wizard-field">
+          <label for="wzConfirmPassword">Confirm password</label>
+          <input type="password" id="wzConfirmPassword" autocomplete="new-password" placeholder="Re-enter your password">
+        </div>
+      </div>
+      <p class="wizard-step-sub" style="margin-top:-6px;">Already registered? <a href="login.html">Log in</a> instead.</p>
+    </section>
+
+    <!-- Step 2: Gym information -->
+    <section class="wizard-step" id="wizardStep2" aria-labelledby="step2Heading">
+      <h2 id="step2Heading">2. Tell us about your gym</h2>
+      <p class="wizard-step-sub">This is what the AI Receptionist will use to answer customers.</p>
+      <div class="wizard-field">
+        <label for="wzAddress">Address</label>
+        <input type="text" id="wzAddress" placeholder="142 Congress Ave, Quezon City">
+      </div>
+      <div class="wizard-field">
+        <label for="wzContactNumber">Contact number</label>
+        <input type="text" id="wzContactNumber" placeholder="0917 123 4567">
+      </div>
+      <div class="wizard-field">
+        <label for="wzDescription">Short description</label>
+        <textarea id="wzDescription" spellcheck="false" placeholder="A friendly neighborhood strength & conditioning gym..."></textarea>
+      </div>
+      <div class="wizard-field">
+        <label for="wzWelcomeMessage">Welcome message the AI opens with</label>
+        <input type="text" id="wzWelcomeMessage" placeholder="Hi! Welcome to [Gym Name] — ask me about rates, trainers, or book a free trial.">
+      </div>
+    </section>
+
+    <!-- Step 3: Membership pricing -->
+    <section class="wizard-step" id="wizardStep3" aria-labelledby="step3Heading">
+      <h2 id="step3Heading">3. Configure membership pricing</h2>
+      <p class="wizard-step-sub">These are the numbers your AI Receptionist quotes to customers.</p>
+      <div class="wizard-field-row">
+        <div class="wizard-field">
+          <label for="wzMembershipFee">Monthly membership</label>
+          <input type="text" id="wzMembershipFee" placeholder="₱1,200/month">
+        </div>
+        <div class="wizard-field">
+          <label for="wzWalkInFee">Walk-in rate</label>
+          <input type="text" id="wzWalkInFee" placeholder="₱150/session">
+        </div>
+      </div>
+      <div class="wizard-field-row">
+        <div class="wizard-field">
+          <label for="wzStudentDiscount">Student discount</label>
+          <input type="text" id="wzStudentDiscount" placeholder="₱1,000/month with valid school ID">
+        </div>
+        <div class="wizard-field">
+          <label for="wzPtRate">Personal training rate</label>
+          <input type="text" id="wzPtRate" placeholder="₱350/session">
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 4: Operating hours -->
+    <section class="wizard-step" id="wizardStep4" aria-labelledby="step4Heading">
+      <h2 id="step4Heading">4. Set your operating hours</h2>
+      <p class="wizard-step-sub">And a few quick yes/no details customers always ask about.</p>
+      <div class="wizard-field">
+        <label for="wzHours">Operating hours</label>
+        <input type="text" id="wzHours" placeholder="Mon–Sat 5:00 AM – 10:00 PM, Sun 7:00 AM – 6:00 PM">
+      </div>
+      <div class="wizard-toggle-row">
+        <label class="wizard-toggle"><input type="checkbox" id="wzTrainerAvailable"> Certified trainers on-site</label>
+        <label class="wizard-toggle"><input type="checkbox" id="wzFreeTrialAvailable" checked> Free trial available</label>
+        <label class="wizard-toggle"><input type="checkbox" id="wzParkingAvailable"> Free parking for members</label>
+      </div>
+    </section>
+
+    <!-- Step 5: Test AI receptionist -->
+    <section class="wizard-step" id="wizardStep5" aria-labelledby="step5Heading">
+      <h2 id="step5Heading">5. Test your AI Receptionist</h2>
+      <p class="wizard-step-sub">This is exactly the information block it will answer from — nothing more, nothing hidden.</p>
+      <pre class="wizard-ai-preview" id="wzAiPreview"></pre>
+      <div id="wzAiMissing"></div>
+    </section>
+
+    <!-- Step 6: Review dashboard -->
+    <section class="wizard-step" id="wizardStep6" aria-labelledby="step6Heading">
+      <h2 id="step6Heading">6. Review before you launch</h2>
+      <p class="wizard-step-sub">Everything below is already saved — you can change any of it later from the dashboard.</p>
+      <ul class="wizard-review-list" id="wzReviewList"></ul>
+
+      <h3 style="margin-top:22px;">Choose your trial plan</h3>
+      <p class="wizard-step-sub">You can switch plans anytime later from your Subscription page — this just picks what your free trial starts on.</p>
+      <div class="owner-plans-grid" id="wzPlanChoice"></div>
+    </section>
+
+    <!-- Step 7: Start free trial -->
+    <section class="wizard-step" id="wizardStep7" aria-labelledby="step7Heading">
+      <div class="wizard-success">
+        <div class="big-check" aria-hidden="true">🎉</div>
+        <h2 id="step7Heading">You're set — start your free trial</h2>
+        <p class="wizard-step-sub" id="wzTrialSummary">14 days, no card required. Cancel anytime from your Subscription page.</p>
+      </div>
+    </section>
+
+    <div class="wizard-actions">
+      <button type="button" class="btn btn-ghost" id="wzBackBtn">Back</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-primary" id="wzNextBtn">
+        Continue
+        <span class="auth-spinner" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/main-onboarding.js"></script>
+</body>
+</html>
