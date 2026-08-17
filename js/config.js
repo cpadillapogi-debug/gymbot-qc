@@ -88,7 +88,7 @@ export const CONFIG = Object.freeze({
   // key from api-key-service.js) unchanged — this is an opt-in upgrade, not
   // a breaking change; nothing else in the app needs to know which mode is
   // active, since callGemini()'s return shape is identical either way.
-  AI_PROXY_URL: "",
+ AI_PROXY_URL: "https://gymbot-gemini-proxy.idollodi065.workers.dev",
 
   // Input limits
   CHAT_MESSAGE_MAX_LEN: 500,
