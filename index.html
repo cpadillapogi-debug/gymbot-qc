@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>GymBot QC — 24/7 AI Receptionist for Philippine Gyms</title>
+<meta name="description" content="GymBot QC: an AI receptionist that answers gym questions and books free trials, 24/7.">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<!-- ============================================================
+     TOP BAR
+     ============================================================ -->
+<div class="topbar">
+  <nav class="topbar-inner" aria-label="Primary">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <div class="tagline-small">24/7 AI Receptionist for Philippine Gyms</div>
+    <div style="display:flex;gap:8px;">
+      <a href="pricing.html" class="btn btn-ghost btn-sm">Pricing</a>
+      <a href="#faq" class="btn btn-ghost btn-sm">FAQ</a>
+      <a href="register.html" class="btn btn-ghost btn-sm">Register your gym</a>
+      <a href="login.html" class="btn btn-ghost btn-sm">Log in</a>
+    </div>
+  </nav>
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Built for independent gyms in Quezon City</p>
+    <h1>Your gym never sleeps. <em>Your receptionist shouldn't have to.</em></h1>
+    <p class="lede">GymBot QC answers membership questions, handles "medyo mahal" objections, and books free trial sessions — automatically, in Taglish, 24/7. Try the live demo below.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" id="runDemoBtn" type="button">▶ Run 60-Second Gym Owner Demo</button>
+      <a href="#chat" class="btn btn-ghost">Try it yourself</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============================================================
+       LIVE CONSOLE: CHAT + DASHBOARD
+       ============================================================ -->
+  <section id="chat" aria-labelledby="chat-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="chat-heading">Talk to GymBot QC</h2>
+        <p>This is the exact chat a customer sees on Messenger. Ask about rates, trainers, or a free trial.</p>
+      </div>
+
+      <div class="console-grid">
+        <!-- CHAT CARD -->
+        <article class="chat-card" aria-label="GymBot chat">
+          <div class="chat-header">
+            <div class="chat-avatar" aria-hidden="true">GB</div>
+            <div class="chat-header-text">
+              <div class="name">Commonwealth Fitness Hub — GymBot QC</div>
+              <div class="status"><span class="status-dot" id="chatStatusDot" aria-hidden="true"></span> <span id="chatStatusText">Active now</span></div>
+            </div>
+          </div>
+
+          <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Chat conversation"></div>
+
+          <div class="quick-replies" id="quickReplies">
+            <button class="chip" data-msg="Magkano po ang monthly membership?">Membership rates</button>
+            <button class="chip" data-msg="May trainers po ba kayo?">Trainers</button>
+            <button class="chip" data-msg="Pwede po free trial?">Book free trial</button>
+            <button class="chip" data-msg="Anong oras po kayo bukas?">Hours</button>
+          </div>
+
+          <form class="chat-input-row" id="chatForm">
+            <label for="chatInput" class="sr-only">Type a message</label>
+            <input type="text" id="chatInput" maxlength="500" autocomplete="off"
+                   placeholder="Type your question..." />
+            <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">➤</button>
+          </form>
+        </article>
+
+        <!-- DASHBOARD CARD -->
+        <aside class="dash-card" aria-label="Today's front desk dashboard">
+          <div class="dash-title"><h3>Today's Front Desk</h3></div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="num" id="statLeads">0</div><div class="label">Leads captured</div></div>
+            <div class="stat-box"><div class="num" id="statTrials">0</div><div class="label">Trials booked</div></div>
+            <div class="stat-box"><div class="num" id="statRevenue">₱0</div><div class="label">Est. revenue (if 40% join)</div></div>
+            <div class="stat-box"><div class="num" id="statHours">0h</div><div class="label">Staff hours saved</div></div>
+          </div>
+
+          <div class="dash-title"><h3 style="margin:0;">Leads</h3></div>
+          <div class="lead-list" id="leadList">
+            <div class="empty-state" id="leadEmpty">No leads yet — chat with the bot on the left, or run the demo.</div>
+          </div>
+
+          <div class="dash-footer">
+            <button class="btn btn-ghost btn-sm" id="exportCsvBtn" type="button">Export CSV</button>
+            <button class="btn btn-danger-outline btn-sm" id="clearLeadsBtn" type="button">Clear leads</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PRICING
+       ============================================================ -->
+  <section id="pricing" aria-labelledby="pricing-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pricing-heading">Simple pricing</h2>
+        <p>No setup fees. Cancel anytime. Prices in PHP, per month, per branch.</p>
+      </div>
+      <div class="pricing-grid">
+        <article class="price-card">
+          <h3>Starter</h3>
+          <div class="price">₱1,500<span>/mo</span></div>
+          <ul>
+            <li>Messenger auto-replies</li>
+            <li>Membership &amp; rate questions</li>
+            <li>Free trial booking</li>
+            <li>Lead capture list</li>
+          </ul>
+          <a href="#chat" class="btn btn-ghost">Try the demo</a>
+        </article>
+        <article class="price-card featured">
+          <h3>Pro</h3>
+          <div class="price">₱2,500<span>/mo</span></div>
+          <ul>
+            <li>Everything in Starter</li>
+            <li>Google Sheets lead sync</li>
+            <li>Daily lead &amp; conversion summary</li>
+            <li>Custom gym info &amp; pricing script</li>
+          </ul>
+          <a href="#chat" class="btn btn-primary">Try the demo</a>
+        </article>
+        <article class="price-card">
+          <h3>Elite</h3>
+          <div class="price">₱4,000<span>/mo</span></div>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>Multi-branch support</li>
+            <li>WhatsApp + Messenger</li>
+            <li>Priority setup &amp; changes</li>
+          </ul>
+          <a href="#chat" class="btn btn-ghost">Try the demo</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SETUP — gym info + FAQ answers (what you'd hand a real client)
+       ============================================================ -->
+  <section id="setup" aria-labelledby="setup-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="setup-heading">Setup</h2>
+        <p>GymBot QC now answers from a built-in question list — no API key required to get started. Just customize your gym's info and FAQ answers below.</p>
+      </div>
+
+      <div class="panel">
+        <h3>1. Gemini API key (optional)</h3>
+        <label for="apiKeyInput">Google Gemini API key</label>
+        <input type="password" id="apiKeyInput" autocomplete="off" placeholder="Paste your key (starts with AI...)">
+        <p class="help-text">Not required — GymBot QC currently answers entirely from its built-in FAQ list and each gym's own saved FAQ answers, with no AI API call at all. This field is kept here only in case AI-generated answers are re-enabled in a future update. Stored only in this browser's local storage if you do add one.</p>
+        <div class="panel-actions">
+          <button class="btn btn-primary btn-sm" id="saveKeyBtn" type="button">Save key</button>
+          <button class="btn btn-ghost btn-sm" id="clearKeyBtn" type="button">Remove key</button>
+          <button class="btn btn-ghost btn-sm" id="testConnectionBtn" type="button">Test connection</button>
+        </div>
+        <div class="status-line" id="keyStatus" role="status"></div>
+        <div class="status-line" id="testConnectionStatus" role="status"></div>
+      </div>
+
+      <div class="panel">
+        <h3>2. Gym info the bot uses to answer</h3>
+        <label for="gymInfoInput">Edit this and the bot's answers update immediately — this is what you'd customize per client.</label>
+        <textarea id="gymInfoInput" spellcheck="false"></textarea>
+        <div class="panel-actions">
+          <button class="btn btn-primary btn-sm" id="saveGymInfoBtn" type="button">Save gym info</button>
+          <button class="btn btn-ghost btn-sm" id="resetGymInfoBtn" type="button">Reset to Commonwealth demo</button>
+        </div>
+        <div class="status-line" id="gymInfoStatus" role="status"></div>
+      </div>
+
+      <div class="panel">
+        <h3>3. Where leads go next (not built yet)</h3>
+        <p class="help-text" style="margin-top:0;">Leads currently save to this browser only. When you get your first paying gym, the next step is a simple daily export — either a Google Sheet or an email — not a full integration. Don't build Messenger/WhatsApp/n8n hookups until a real customer needs them; they don't help you get the first one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FAQ
+       ============================================================ -->
+  <section id="faq" aria-labelledby="faq-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="faq-heading">Frequently asked questions</h2>
+        <p>The questions gym owners actually ask before signing up.</p>
+      </div>
+
+      <details>
+        <summary>Do I need to know how to code?</summary>
+        <div class="audit-body"><p>No. Registering your gym, entering your business info, and running the AI receptionist all happen through plain forms in the dashboard — see <a href="onboarding.html">Getting Started</a>.</p></div>
+      </details>
+      <details>
+        <summary>Does it work in Taglish?</summary>
+        <div class="audit-body"><p>Yes — try the live demo above. GymBot QC's built-in question list covers common gym questions in English, Tagalog, and Taglish, including shortcuts and typos customers actually type.</p></div>
+      </details>
+      <details>
+        <summary>Where does my data live?</summary>
+        <div class="audit-body"><p>In this browser's local storage for the demo/preview version of the app — see the Security audit below. A production deployment for a paying gym should move data server-side; see the Launch Guide's migration notes.</p></div>
+      </details>
+      <details>
+        <summary>Can I cancel anytime?</summary>
+        <div class="audit-body"><p>Yes, from your Subscription page inside the dashboard — no contract, no cancellation fee. Full details on the <a href="pricing.html">pricing page</a>.</p></div>
+      </details>
+      <details>
+        <summary>What if my Wi-Fi drops mid-conversation with a customer?</summary>
+        <div class="audit-body"><p>The chat detects offline status and shows a clear "Offline" indicator instead of failing silently; replies resume automatically once connectivity returns.</p></div>
+      </details>
+      <details>
+        <summary>Is there a free trial?</summary>
+        <div class="audit-body"><p>Every new gym gets a 14-day free trial on the Pro plan, no card required. Start it from <a href="onboarding.html">Getting Started</a>.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CONTACT
+       ============================================================ -->
+  <section id="contact" aria-labelledby="contact-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="contact-heading">Contact &amp; support</h2>
+        <p>Already a customer? The fastest answers are inside your dashboard's <a href="owner-dashboard.html#help">Help &amp; Support</a> page.</p>
+      </div>
+      <div class="panel">
+        <table>
+          <tr><th style="text-align:left;padding:6px 12px 6px 0;">Email</th><td>cpadillapogi@gmail.com</td></tr>
+          <tr><th style="text-align:left;padding:6px 12px 6px 0;">Response time</th><td>Same business day for account/billing questions.</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       AUDITS
+       ============================================================ -->
+  <section id="audits" aria-labelledby="audits-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="audits-heading">Security &amp; reliability</h2>
+        <p>What this page does, in plain terms — worth showing a cautious gym owner or their IT-minded relative.</p>
+      </div>
+
+      <details>
+        <summary>Security audit</summary>
+        <div class="audit-body">
+          <p>This page is plain HTML, CSS, and JavaScript (loaded as ES modules). No build step, no minification, no external JS libraries. Nothing here is obfuscated — view source and you see exactly what runs.</p>
+          <table>
+            <tr><th>What</th><th>Why it's here</th></tr>
+            <tr><td>Built-in FAQ matching (no network call)</td><td>The chat answers directly from a built-in question list and each gym's own saved FAQ answers — entirely in the browser, no server round-trip needed to answer a customer.</td></tr>
+            <tr><td><code>localStorage</code></td><td>Stores gym info text and captured leads on this device only, via a single StorageAdapter module. Nothing is sent to any server GymBot QC controls.</td></tr>
+            <tr><td>No cookies, no analytics, no tracking pixels</td><td>Not needed for the demo.</td></tr>
+            <tr><td>No <code>eval</code>, <code>Function()</code>, or string-based <code>setTimeout</code>/<code>setInterval</code></td><td>All timers use function references, not code strings.</td></tr>
+            <tr><td>No iframes, hidden forms, or hidden downloads</td><td>Nothing runs or downloads without a visible, deliberate button click.</td></tr>
+          </table>
+          <p style="margin-top:10px;"><strong>Note:</strong> an optional Gemini API key field is still available in Setup in case AI-generated answers are re-enabled in a future update, but it currently plays no role in answering customers — nothing here sends chat messages to any external API.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Bug prevention audit</summary>
+        <div class="audit-body">
+          <table>
+            <tr><th>Scenario</th><th>Handling</th></tr>
+            <tr><td>Question not covered by the FAQ list</td><td>Bot shows a clear "let me have staff follow up" message instead of guessing or failing silently.</td></tr>
+            <tr><td>Complaint, injury, emergency, or billing dispute</td><td>Never answered by guesswork — automatically routed to a "please contact our staff directly" message so a human handles it.</td></tr>
+            <tr><td>Empty or whitespace-only message</td><td>Blocked before sending — button stays disabled.</td></tr>
+            <tr><td>Very long message</td><td>Input is capped at 500 characters via <code>maxlength</code> and clamped again in code.</td></tr>
+            <tr><td>Rapid repeated clicks</td><td>Send button disables the instant a message is sent and re-enables only after a reply or error.</td></tr>
+            <tr><td>Corrupted localStorage</td><td>All reads go through StorageAdapter's try/catch; a broken lead list or gym-info entry is reset instead of crashing the page.</td></tr>
+            <tr><td>CSV export with commas/quotes/emoji</td><td>Every field is quote-wrapped and internal quotes escaped before export.</td></tr>
+            <tr><td>Booking form left blank</td><td>Name and phone are required before "Confirm booking" is enabled; inline error text explains what's missing.</td></tr>
+            <tr><td>Customer goes offline mid-chat</td><td>Detected via <code>navigator.onLine</code> before wasting a network call; header shows an "Offline" status and replies fall back automatically until connectivity returns.</td></tr>
+          </table>
+        </div>
+      </details>
+
+      <details>
+        <summary>Deployment checklist</summary>
+        <div class="audit-body">
+          <ol style="padding-left:18px;margin:0;">
+            <li>Swap the demo gym info for the real client's info in the Setup panel, then export that text somewhere safe (it resets if the browser storage is cleared).</li>
+            <li>Fill in each gym's real FAQ answers in Business Settings (Gym Owner dashboard) before sharing their widget link — the built-in list ships with placeholder text.</li>
+            <li>Host on Netlify or GitHub Pages (both are free, both serve plain HTML/ES modules fine over HTTPS).</li>
+            <li>Test on an actual Android phone, not just desktop Chrome — check the keyboard doesn't cover the input.</li>
+            <li>Send the link to the gym owner and watch them use it once, live, before pitching the paid plan.</li>
+          </ol>
+        </div>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">GymBot QC — a demo built for independent gyms in Quezon City. Not affiliated with Google or Meta.</div>
+</footer>
+
+<div id="toastHost"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
