@@ -31,16 +31,16 @@ const PAGE_LABELS = Object.freeze({
   "dev-console": "Developer Console"
 });
 
-export function renderAdminShell(session){
-  const user = getCurrentUser();
+export async function renderAdminShell(session){
+  const user = await getCurrentUser();
 
   document.getElementById("shellUserEmail").textContent = user ? user.email : "";
   const roleBadgeEl = document.getElementById("shellRoleBadge");
   roleBadgeEl.textContent = "Master Admin";
   roleBadgeEl.classList.add("dev");
 
-  document.getElementById("shellLogoutBtn").addEventListener("click", () => {
-    logout();
+  document.getElementById("shellLogoutBtn").addEventListener("click", async () => {
+    await logout();
     window.location.replace(ROUTES.LOGIN);
   });
 

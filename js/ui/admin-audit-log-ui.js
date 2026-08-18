@@ -53,7 +53,7 @@ function renderActiveTab(){
   if(headingEl) headingEl.textContent = tab === "security" ? "Security Center" : "Developer Audit Log";
 
   if(tab === "security"){
-    renderSecurityPanel(root);
+    renderSecurityPanel(root); // async — fires and updates DOM when ready, nothing here awaits it
     return;
   }
   renderLogTab(root);

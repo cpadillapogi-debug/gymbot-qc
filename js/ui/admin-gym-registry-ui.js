@@ -27,8 +27,8 @@ import { showToast } from "./toast-ui.js";
 
 /** Every Developer action in this file is attributed to the signed-in
  *  Developer's email — the audit log's `performedBy` field. */
-function currentDeveloperEmail(){
-  const u = getCurrentUser();
+async function currentDeveloperEmail(){
+  const u = await getCurrentUser();
   return u ? u.email : "(unknown developer)";
 }
 
@@ -74,19 +74,19 @@ export function initAdminGymRegistryPage(){
   renderTable();
 }
 
-export function refreshAdminGymRegistryPage(){
+export async function refreshAdminGymRegistryPage(){
   if(!els || !els.list) return;
-  renderTable();
-  if(openGymId) renderModal(openGymId);
+  await renderTable();
+  if(openGymId) await renderModal(openGymId);
 }
 
 /** Called from the Overview page's "recently registered" list — jumps
  *  to the Gym Registry page and opens that gym's detail modal. */
-export function goToRegistryGym(gymId){
+export async function goToRegistryGym(gymId){
   window.location.hash = "gym-registry";
   currentPage = 1;
-  renderTable();
-  openModal(gymId);
+  await renderTable();
+  await openModal(gymId);
 }
 
 function populateStatusFilter(){
@@ -108,12 +108,12 @@ function populatePlanFilter(){
  *  directly) so changing a filter always lands back on page 1 — staying
  *  on, say, page 4 of an unrelated filter would otherwise silently show
  *  an empty page. */
-function resetPageAndRender(){
+async function resetPageAndRender(){
   currentPage = 1;
-  renderTable();
+  await renderTable();
 }
 
-function getFilteredSortedRows(){
+async function getFilteredSortedRows(){
   const query = (els.search.value || "").trim().toLowerCase();
   const statusFilter = els.statusFilter.value;
   const planFilter = els.planFilter ? els.planFilter.value : "";
@@ -121,7 +121,7 @@ function getFilteredSortedRows(){
   const dateFilterDays = els.dateFilter ? Number(els.dateFilter.value || 0) : 0;
   const sort = els.sort.value;
 
-  let rows = getGymRegistry();
+  let rows = await getGymRegistry();
 
   if(!(els.showDeleted && els.showDeleted.checked)){
     rows = rows.filter(r => !r.isDeleted);
@@ -166,8 +166,8 @@ function getFilteredSortedRows(){
   return rows;
 }
 
-function renderTable(){
-  const allRows = getFilteredSortedRows();
+async function renderTable(){
+  const allRows = await getFilteredSortedRows();
   els.count.textContent = `${allRows.length} gym${allRows.length === 1 ? "" : "s"}`;
 
   if(allRows.length === 0){
@@ -231,9 +231,9 @@ function renderPager(pageCount, totalRows){
   if(nextBtn) nextBtn.addEventListener("click", () => { currentPage++; renderTable(); });
 }
 
-function openModal(gymId){
+async function openModal(gymId){
   openGymId = gymId;
-  renderModal(gymId);
+  await renderModal(gymId);
   els.modalScrim.hidden = false;
 }
 
@@ -242,8 +242,8 @@ function closeModal(){
   els.modalScrim.hidden = true;
 }
 
-function renderModal(gymId){
-  const detail = getGymDetail(gymId);
+async function renderModal(gymId){
+  const detail = await getGymDetail(gymId);
   if(!detail){
     closeModal();
     return;
@@ -392,15 +392,15 @@ function renderModal(gymId){
     if(!window.confirm(`Disable ${detail.gymName}? The owner will be fully locked out until reactivated.`)) return null;
     return disableGymManually(gymId, currentDeveloperEmail());
   });
-  wireAction("adminRestoreBtn", () => restoreGymForDeveloper(gymId, currentDeveloperEmail()));
-  wireAction("adminDeleteBtn", () => {
+  wireAction("adminRestoreBtn", async () => restoreGymForDeveloper(gymId, await currentDeveloperEmail()));
+  wireAction("adminDeleteBtn", async () => {
     if(!window.confirm(`Delete ${detail.gymName}? The owner won't be able to log in anymore, but all their data (leads, settings, invoices) is kept and this can be restored later.`)) return null;
-    return deleteGymForDeveloper(gymId, currentDeveloperEmail());
+    return deleteGymForDeveloper(gymId, await currentDeveloperEmail());
   });
-  wireAction("adminResetPasswordBtn", () => {
+  wireAction("adminResetPasswordBtn", async () => {
     if(!detail.owner) return { ok: false, reason: "No owner account to reset." };
     if(!window.confirm(`Log a password-reset request for ${detail.owner.email}? This is a placeholder — no email is actually sent yet.`)) return null;
-    return resetPasswordPlaceholder(detail.owner.id, currentDeveloperEmail());
+    return resetPasswordPlaceholder(detail.owner.id, await currentDeveloperEmail());
   });
   // Read/write preview of this gym's own dashboard, in a new tab, without
   // touching this Developer's session here — see main-owner-dashboard.js's
@@ -433,11 +433,11 @@ function renderModal(gymId){
   function wireAction(btnId, action){
     const btn = document.getElementById(btnId);
     if(!btn) return;
-    btn.addEventListener("click", () => {
-      const result = action();
+    btn.addEventListener("click", async () => {
+      const result = await action();
       if(result === null) return; // user canceled a confirm()
       showToast(result.ok ? result.message : result.reason);
-      if(result.ok){ renderModal(gymId); renderTable(); }
+      if(result.ok){ await renderModal(gymId); await renderTable(); }
     });
   }
 }

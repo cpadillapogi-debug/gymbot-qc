@@ -32,8 +32,8 @@ let furthestStep = 1;
 let session = null; // set once step 1 completes (or immediately, for an already-logged-in owner)
 let chosenPlanId = CONFIG.SUBSCRIPTION_DEFAULT_PLAN_ID; // picked in step 6's plan picker, applied when step 7 starts the trial
 
-export function initOnboardingUI(){
-  const existing = getSession();
+export async function initOnboardingUI(){
+  const existing = await getSession();
   if(existing && existing.role === ROLES.DEVELOPER){
     window.location.replace(ROUTES.DASHBOARD);
     return;
@@ -134,14 +134,14 @@ function handleStep1(){
   const confirmPassword = document.getElementById("wzConfirmPassword").value;
 
   setLoading(true);
-  setTimeout(() => {
-    const result = registerGymOwner({ gymName, email, password, confirmPassword });
+  setTimeout(async () => {
+    const result = await registerGymOwner({ gymName, email, password, confirmPassword });
     if(!result.ok){
       setLoading(false);
       showAlert(result.error, "error");
       return;
     }
-    const loginResult = login({ email, password, rememberMe: true });
+    const loginResult = await login({ email, password, rememberMe: true });
     setLoading(false);
     if(!loginResult.ok){
       // Extremely unlikely right after a successful register, but never
@@ -149,7 +149,7 @@ function handleStep1(){
       window.location.replace(`${ROUTES.LOGIN}?registered=1`);
       return;
     }
-    session = getSession();
+    session = await getSession();
     goToStep(2);
   }, 350);
 }

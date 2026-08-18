@@ -81,15 +81,15 @@ function renderActiveTab(){
   }
 }
 
-function performedBy(){
-  const user = getCurrentUser();
+async function performedBy(){
+  const user = await getCurrentUser();
   return user ? user.email : null;
 }
 
 /* ---------------- Pending Payments ---------------- */
 
-function renderPendingTab(root){
-  const queue = getPendingPaymentsForDeveloper();
+async function renderPendingTab(root){
+  const queue = await getPendingPaymentsForDeveloper();
 
   if(queue.length === 0){
     root.innerHTML = `<div class="owner-panel"><div class="empty-state">No payments awaiting review.</div></div>`;
@@ -139,14 +139,14 @@ function renderPendingRow({ payment, gymName, ownerEmail }){
   `;
 }
 
-function handleApprove(paymentId){
+async function handleApprove(paymentId){
   if(!window.confirm("Approve this payment? The subscription will become Active for another 30 days.")) return;
-  const result = approvePayment(paymentId, performedBy());
+  const result = approvePayment(paymentId, await performedBy());
   showToast(result.ok ? result.message : (result.reason || "Couldn't approve that payment."));
   renderActiveTab();
 }
 
-function handleReject(paymentId){
+async function handleReject(paymentId){
   const reason = window.prompt("Reason for rejecting this payment (shown to the owner):");
   if(reason === null) return; // canceled
   if(!reason.trim()){
@@ -154,7 +154,7 @@ function handleReject(paymentId){
     return;
   }
   if(!window.confirm("Reject this payment? The owner will be notified with your reason.")) return;
-  const result = rejectPayment(paymentId, performedBy(), reason);
+  const result = rejectPayment(paymentId, await performedBy(), reason);
   showToast(result.ok ? result.message : (result.reason || "Couldn't reject that payment."));
   renderActiveTab();
 }
@@ -172,7 +172,7 @@ function handleReject(paymentId){
 // to avoid. Use the internal note field for a manual "flagged, needs
 // a second look" trail in the meantime.
 
-function renderHistoryTab(root){
+async function renderHistoryTab(root){
   root.innerHTML = `
     <div class="owner-panel">
       <div class="owner-leads-toolbar">
@@ -202,22 +202,22 @@ function renderHistoryTab(root){
   document.getElementById("paymentHistoryMinAmount").addEventListener("input", resetHistoryPageAndRender);
   document.getElementById("paymentHistoryMaxAmount").addEventListener("input", resetHistoryPageAndRender);
 
-  renderHistoryList();
+  await renderHistoryList();
 }
 
-function resetHistoryPageAndRender(){
+async function resetHistoryPageAndRender(){
   historyPage = 1;
-  renderHistoryList();
+  await renderHistoryList();
 }
 
-function getFilteredHistoryRows(){
+async function getFilteredHistoryRows(){
   const query = (document.getElementById("paymentHistorySearch").value || "").trim().toLowerCase();
   const statusFilter = document.getElementById("paymentHistoryStatusFilter").value;
   const dateDays = Number(document.getElementById("paymentHistoryDateFilter").value || 0);
   const minAmount = Number(document.getElementById("paymentHistoryMinAmount").value || 0);
   const maxAmount = Number(document.getElementById("paymentHistoryMaxAmount").value || 0);
 
-  let rows = getPaymentHistoryForDeveloper();
+  let rows = await getPaymentHistoryForDeveloper();
 
   if(query){
     rows = rows.filter(r =>
@@ -243,8 +243,8 @@ function getFilteredHistoryRows(){
   return rows;
 }
 
-function renderHistoryList(){
-  const allRows = getFilteredHistoryRows();
+async function renderHistoryList(){
+  const allRows = await getFilteredHistoryRows();
   document.getElementById("paymentHistoryCount").textContent = `${allRows.length} payment${allRows.length === 1 ? "" : "s"}`;
 
   const listEl = document.getElementById("paymentHistoryList");
@@ -290,8 +290,8 @@ function renderHistoryList(){
   `;
 
   listEl.querySelectorAll(".payment-note-input").forEach(input => {
-    input.addEventListener("change", () => {
-      const result = setPaymentInternalNote(input.dataset.paymentId, input.value, performedBy());
+    input.addEventListener("change", async () => {
+      const result = setPaymentInternalNote(input.dataset.paymentId, input.value, await performedBy());
       if(!result.ok) showToast(result.reason || "Couldn't save that note.");
     });
   });
@@ -390,14 +390,14 @@ function renderGcashTab(root){
     reader.readAsDataURL(file);
   });
 
-  document.getElementById("gcashSettingsForm").addEventListener("submit", (e) => {
+  document.getElementById("gcashSettingsForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     saveGcashSettings({
       qrImageDataUrl: newQrDataUrl !== null ? newQrDataUrl : undefined,
       qrImageFileName: newQrFileName !== null ? newQrFileName : undefined,
       gcashNumber: document.getElementById("gcashNumberInput").value,
       accountName: document.getElementById("gcashAccountNameInput").value
-    }, performedBy());
+    }, await performedBy());
     setStatus(document.getElementById("gcashSettingsStatusLine"), "GCash settings saved.", true);
     showToast("GCash settings saved.");
   });
@@ -460,13 +460,13 @@ function renderCommissionTab(root){
   [modeSelect, fixedInput, percentInput].forEach(el => el.addEventListener("input", renderExample));
   renderExample();
 
-  document.getElementById("commissionForm").addEventListener("submit", (e) => {
+  document.getElementById("commissionForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     saveCommissionConfig({
       mode: modeSelect.value,
       fixedAmount: fixedInput.value,
       percentage: percentInput.value
-    }, performedBy());
+    }, await performedBy());
     setStatus(document.getElementById("commissionStatusLine"), "Commission settings saved.", true);
     showToast("Commission settings saved.");
   });
@@ -474,8 +474,8 @@ function renderCommissionTab(root){
 
 /* ---------------- Revenue ---------------- */
 
-function renderRevenueTab(root){
-  const a = getDeveloperAnalytics();
+async function renderRevenueTab(root){
+  const a = await getDeveloperAnalytics();
 
   root.innerHTML = `
     <div class="owner-metric-grid">

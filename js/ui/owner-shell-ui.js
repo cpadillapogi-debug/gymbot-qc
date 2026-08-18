@@ -38,14 +38,14 @@ const PAGE_LABELS = Object.freeze({
 });
 
 /** Route guard for this page: Gym Owner role required, redirects otherwise. */
-export function requireOwnerSession(){
+export async function requireOwnerSession(){
   return requireRole(ROLES.GYM_OWNER);
 }
 
 let currentSession = null;
 let currentGym = null;
 
-export function renderOwnerShell(session){
+export async function renderOwnerShell(session){
   const gym = session.gymId ? getGymById(session.gymId) : null;
   currentSession = session;
   currentGym = gym;
@@ -70,10 +70,10 @@ export function renderOwnerShell(session){
     });
     renderDevPreviewBanner(gym);
   }else{
-    const user = getCurrentUser();
+    const user = await getCurrentUser();
     document.getElementById("ownerUserEmail").textContent = user ? user.email : "";
-    document.getElementById("ownerLogoutBtn").addEventListener("click", () => {
-      logout();
+    document.getElementById("ownerLogoutBtn").addEventListener("click", async () => {
+      await logout();
       window.location.replace(ROUTES.LOGIN);
     });
   }

@@ -23,10 +23,10 @@ function formatLoginMetaLine(meta){
   return parts.join(" · ");
 }
 
-export function renderSecurityPanel(root){
+export async function renderSecurityPanel(root){
   if(!root) return;
-  const sec = getSecurityOverview();
-  const session = getSession();
+  const sec = await getSecurityOverview();
+  const session = await getSession();
 
   root.innerHTML = `
     <div class="owner-metric-grid">

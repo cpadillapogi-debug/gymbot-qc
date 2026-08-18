@@ -14,11 +14,11 @@ import { renderGrowthPanel } from "./admin-growth-panel-ui.js";
 
 const PHP = new Intl.NumberFormat("en-PH", { maximumFractionDigits: 0 });
 
-export function renderAdminOverviewPage(){
+export async function renderAdminOverviewPage(){
   const root = document.getElementById("adminOverviewContent");
   if(!root) return;
 
-  const ov = getDeveloperAnalytics();
+  const ov = await getDeveloperAnalytics();
   const attention = getAttentionSummary();
 
   root.innerHTML = `

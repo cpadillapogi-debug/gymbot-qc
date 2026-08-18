@@ -23,8 +23,8 @@ function setLoading(button, isLoading){
   button.setAttribute("data-loading", isLoading ? "true" : "false");
 }
 
-export function initLoginUI(){
-  if(redirectIfAuthenticated()) return; // already logged in — bounced to dashboard
+export async function initLoginUI(){
+  if(await redirectIfAuthenticated()) return; // already logged in — bounced to dashboard
 
   const form = document.getElementById("loginForm");
   const emailInput = document.getElementById("loginEmail");
@@ -57,8 +57,8 @@ if (hint) {
 
     // Simulate the latency of a real auth request so the loading
     // state is visible and this swaps cleanly for a fetch() later.
-    setTimeout(() => {
-      const result = login({
+    setTimeout(async () => {
+      const result = await login({
         email: emailInput.value,
         password: passwordInput.value,
         rememberMe: rememberInput.checked
@@ -93,8 +93,8 @@ if (hint) {
   });
 }
 
-export function initRegisterUI(){
-  if(redirectIfAuthenticated()) return;
+export async function initRegisterUI(){
+  if(await redirectIfAuthenticated()) return;
 
   const form = document.getElementById("registerForm");
   const gymNameInput = document.getElementById("registerGymName");
@@ -110,8 +110,8 @@ export function initRegisterUI(){
     hideAlert(alertEl);
     setLoading(submitBtn, true);
 
-    setTimeout(() => {
-      const result = registerGymOwner({
+    setTimeout(async () => {
+      const result = await registerGymOwner({
         gymName: gymNameInput.value,
         email: emailInput.value,
         password: passwordInput.value,
