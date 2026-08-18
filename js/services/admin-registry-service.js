@@ -35,11 +35,11 @@ import { getAllSubmittedPayments, getAllPaymentsForDeveloper } from "./gcash-pay
  * the Gym Registry table.
  * @returns {object[]}
  */
-export function getGymRegistry(){
+export async function getGymRegistry(){
   const gyms = getAllGymsForDeveloper();
 
-  return gyms.map(gym => {
-    const owner = getUserByIdForDeveloper(gym.ownerId);
+  return Promise.all(gyms.map(async gym => {
+    const owner = await getUserByIdForDeveloper(gym.ownerId);
     const sub = getSubscription(gym.id);
     const plan = getPlan(sub.planId);
     const requestedPlan = sub.requestedPlanId ? getPlan(sub.requestedPlanId) : null;
@@ -70,7 +70,7 @@ export function getGymRegistry(){
       invoiceCount: invoices.length,
       latestInvoiceStatus: invoices.length > 0 ? invoices[0].status : null
     };
-  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  })).then(rows => rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 }
 
 /**
@@ -79,11 +79,11 @@ export function getGymRegistry(){
  * to render (subscription access flags, invoice history).
  * @returns {object|null}
  */
-export function getGymDetail(gymId){
+export async function getGymDetail(gymId){
   const gym = getGymById(gymId);
   if(!gym) return null;
 
-  const owner = getUserByIdForDeveloper(gym.ownerId);
+  const owner = await getUserByIdForDeveloper(gym.ownerId);
   const sub = getSubscription(gymId);
   const plan = getPlan(sub.planId);
   const requestedPlan = sub.requestedPlanId ? getPlan(sub.requestedPlanId) : null;
@@ -115,8 +115,8 @@ export function getGymDetail(gymId){
  * still no payment gateway — see docs/PHASE6_NOTES.md).
  * @returns {object}
  */
-export function getPlatformOverview(){
-  const registry = getGymRegistry();
+export async function getPlatformOverview(){
+  const registry = await getGymRegistry();
   // Soft-deleted gyms keep their subscription record untouched (deletion
   // only sets deletedAt on the gym, by design — see tenant-service.js),
   // so without this filter a deleted gym's old "Active" status would
@@ -125,7 +125,7 @@ export function getPlatformOverview(){
   // down (unfiltered) since that's a recent-activity feed where seeing
   // "this gym was just deleted" is useful, not a live count.
   const liveRegistry = registry.filter(row => !row.isDeleted);
-  const users = getAllUsersForDeveloper();
+  const users = await getAllUsersForDeveloper();
 
   const statusCounts = Object.values(SUBSCRIPTION_STATUS).reduce((acc, s) => {
     acc[s] = 0;
@@ -164,17 +164,17 @@ export function getPlatformOverview(){
  * approval UI needs to render without a second lookup per row.
  * @returns {object[]} oldest-submitted-first (FIFO review order)
  */
-export function getPendingPaymentsForDeveloper(){
-  return getAllSubmittedPayments().map(payment => {
+export async function getPendingPaymentsForDeveloper(){
+  return Promise.all(getAllSubmittedPayments().map(async payment => {
     const gym = getGymById(payment.gymId);
-    const owner = gym ? getUserByIdForDeveloper(gym.ownerId) : null;
+    const owner = gym ? await getUserByIdForDeveloper(gym.ownerId) : null;
     return {
       payment,
       gymId: payment.gymId,
       gymName: gym ? gym.name : "(deleted gym)",
       ownerEmail: owner ? owner.email : "(no owner account)"
     };
-  });
+  }));
 }
 
 /**
@@ -185,17 +185,17 @@ export function getPendingPaymentsForDeveloper(){
  * reading order, opposite of the FIFO review queue above).
  * @returns {object[]}
  */
-export function getPaymentHistoryForDeveloper(){
-  return getAllPaymentsForDeveloper().map(payment => {
+export async function getPaymentHistoryForDeveloper(){
+  return Promise.all(getAllPaymentsForDeveloper().map(async payment => {
     const gym = getGymById(payment.gymId);
-    const owner = gym ? getUserByIdForDeveloper(gym.ownerId) : null;
+    const owner = gym ? await getUserByIdForDeveloper(gym.ownerId) : null;
     return {
       payment,
       gymId: payment.gymId,
       gymName: gym ? gym.name : "(deleted gym)",
       ownerEmail: owner ? owner.email : "(no owner account)"
     };
-  });
+  }));
 }
 
 /**
@@ -208,9 +208,9 @@ export function getPaymentHistoryForDeveloper(){
  * have AI enabled.
  * @returns {object}
  */
-export function getDeveloperAnalytics(){
-  const overview = getPlatformOverview();
-  const registry = getGymRegistry();
+export async function getDeveloperAnalytics(){
+  const overview = await getPlatformOverview();
+  const registry = await getGymRegistry();
 
   const totalLeadsAllGyms = registry.reduce((sum, r) => sum + r.leadsCount, 0);
   const pendingPaymentCount =
@@ -246,7 +246,7 @@ export function getDeveloperAnalytics(){
   const approvedPayments = getAllPaymentsForDeveloper().filter(p => p.status === GCASH_PAYMENT_STATUS.APPROVED);
   const totalCommissionsCollected = approvedPayments.reduce((sum, p) => sum + (p.commissionAmount || 0), 0);
 
-  const pendingPaymentsQueueCount = getPendingPaymentsForDeveloper().length;
+  const pendingPaymentsQueueCount = (await getPendingPaymentsForDeveloper()).length;
   const estimatedArr = overview.estimatedMrr * 12;
 
   return Object.assign({}, overview, {

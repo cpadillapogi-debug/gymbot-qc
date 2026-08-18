@@ -33,7 +33,7 @@ import { getAllUsersForDeveloper } from "./auth-service.js";
  * @returns {object} everything the Security Center panel needs, built
  *   only from real stored data.
  */
-export function getSecurityOverview(){
+export async function getSecurityOverview(){
   const loginLogs = getSystemLogs({ category: SYSTEM_LOG_CATEGORIES.LOGIN_ATTEMPT });
   const failedLogins = loginLogs.filter(l => l.level === SYSTEM_LOG_LEVELS.WARNING);
   const successfulLogins = loginLogs.filter(l => l.level === SYSTEM_LOG_LEVELS.INFO);
@@ -41,7 +41,7 @@ export function getSecurityOverview(){
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const failedLoginsLast7Days = failedLogins.filter(l => new Date(l.timestamp).getTime() >= sevenDaysAgo).length;
 
-  const users = getAllUsersForDeveloper();
+  const users = await getAllUsersForDeveloper();
   const developerAccounts = users
     .filter(u => u.role === ROLES.DEVELOPER)
     .map(u => ({ id: u.id, email: u.email, lastLoginAt: u.lastLoginAt || null }))

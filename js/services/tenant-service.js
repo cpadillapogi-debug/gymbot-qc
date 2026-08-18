@@ -57,6 +57,35 @@ export function getAllGymsForDeveloper(){
   return getAllGyms();
 }
 
+/**
+ * Upserts a gym record the backend just told us about (from
+ * register/login/me responses) into the local `gyms` store, keyed by
+ * the server's own id. This is what keeps getGymById() etc. in sync
+ * for gyms that only exist in Postgres now that registration happens
+ * server-side — without requiring every reader of gym data
+ * (subscription-service, dev-console-service, demo-mode-service,
+ * main-widget.js) to be rewritten to fetch the API directly.
+ * @param {{id:string, name:string, ownerId?:string, createdAt?:string, deletedAt?:string|null}|null} serverGym
+ */
+export function mirrorGymFromServer(serverGym, ownerId){
+  if(!serverGym || !serverGym.id) return;
+  const gyms = getAllGyms();
+  const existing = gyms.find(g => g.id === serverGym.id);
+  if(existing){
+    existing.name = serverGym.name;
+    existing.deletedAt = serverGym.deletedAt ?? existing.deletedAt ?? null;
+  }else{
+    gyms.push({
+      id: serverGym.id,
+      name: serverGym.name,
+      ownerId: serverGym.ownerId || ownerId,
+      createdAt: serverGym.createdAt || new Date().toISOString(),
+      deletedAt: serverGym.deletedAt ?? null
+    });
+  }
+  saveAllGyms(gyms);
+}
+
 /* ---------- Developer-only account lifecycle (Phase 8) ----------
    SOFT delete only — "Delete account" never removes the gym record
    or anything scoped to it (leads/settings/conversations/invoices/
