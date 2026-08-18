@@ -1,0 +1,863 @@
+diff --git a/js/auth-guard.js b/js/auth-guard.js
+index 65aae1c..60a875e 100644
+--- a/js/auth-guard.js
++++ b/js/auth-guard.js
+@@ -1,19 +1,20 @@
+ /* ============================================================
+    GYMBOT QC — AUTH GUARD
+-   Route-protection placeholder for a static, multi-page site.
+-   There's no server-side session check here (there's no server
+-   yet) — this only prevents the *page content* from rendering
+-   for the wrong visitor. Anything genuinely sensitive (other
+-   gyms' data, Developer-only actions) must also be enforced
+-   server-side once a backend exists; a client-side redirect is
+-   a UX guard, not a security boundary.
++   Route-protection for a static frontend talking to a real
++   backend. This still only prevents *page content* from
++   rendering for the wrong visitor on the client — the actual
++   security boundary is server-side now (the API checks the
++   session cookie + role on every request, see gymbot-qc-api's
++   requireAuth/requireRole middleware). A bypassed client guard
++   can no longer read another gym's data, because the server
++   won't return it without a valid cookie either way.
+ 
+    Usage — at the top of a protected page's entry script:
+      import { requireAuth, requireRole } from "../auth-guard.js";
+-     const session = requireAuth();       // any logged-in user
+-     if(!session) return;                 // a redirect is already underway
++     const session = await requireAuth();       // any logged-in user
++     if(!session) return;                        // a redirect is already underway
+      // or:
+-     const session = requireRole(ROLES.DEVELOPER);
++     const session = await requireRole(ROLES.DEVELOPER);
+    ============================================================ */
+ import { ROUTES, ROLES } from "./config.js";
+ import { getSession } from "./services/auth-service.js";
+@@ -21,10 +22,10 @@ import { getSession } from "./services/auth-service.js";
+ /**
+  * Redirects to the login page (preserving the current page as a
+  * `redirect` param) if there's no valid session.
+- * @returns {object|null} the session if present, otherwise null (redirect is already underway)
++ * @returns {Promise<object|null>} the session if present, otherwise null (redirect is already underway)
+  */
+-export function requireAuth(){
+-  const session = getSession();
++export async function requireAuth(){
++  const session = await getSession();
+   if(!session){
+     const here = window.location.pathname.split("/").pop() || ROUTES.HOME;
+     window.location.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(here)}`);
+@@ -38,8 +39,8 @@ export function requireAuth(){
+  * if the logged-in user has the wrong role for this page.
+  * @param {string} role one of ROLES.*
+  */
+-export function requireRole(role){
+-  const session = requireAuth();
++export async function requireRole(role){
++  const session = await requireAuth();
+   if(!session) return null;
+   if(session.role !== role){
+     window.location.replace(roleHome(session.role));
+@@ -49,8 +50,8 @@ export function requireRole(role){
+ }
+ 
+ /** For login/register pages: bounce an already-logged-in visitor straight to their dashboard. */
+-export function redirectIfAuthenticated(){
+-  const session = getSession();
++export async function redirectIfAuthenticated(){
++  const session = await getSession();
+   if(session){
+     window.location.replace(roleHome(session.role));
+     return true;
+@@ -59,10 +60,5 @@ export function redirectIfAuthenticated(){
+ }
+ 
+ export function roleHome(role){
+-  // Phase 3: Developer and Gym Owner now have separate pages.
+-  // dashboard.html is Developer-only; owner-dashboard.html is
+-  // Gym-Owner-only. Both pages guard themselves with requireRole()
+-  // too, so a stale/bookmarked link can't land the wrong role on
+-  // the wrong page even if this function is bypassed.
+   return role === ROLES.DEVELOPER ? ROUTES.DASHBOARD : ROUTES.DASHBOARD_OWNER;
+ }
+diff --git a/js/main-dashboard.js b/js/main-dashboard.js
+index 0cae2ef..273a623 100644
+--- a/js/main-dashboard.js
++++ b/js/main-dashboard.js
+@@ -10,8 +10,9 @@ import { requireRole } from "./auth-guard.js";
+ import { renderAdminShell } from "./ui/admin-shell-ui.js";
+ import { showNewDeviceAlertIfFlagged } from "./ui/toast-ui.js";
+ 
++(async () => {
+ try{
+-  const session = requireRole(ROLES.DEVELOPER);
++  const session = await requireRole(ROLES.DEVELOPER);
+   if(session){
+     renderAdminShell(session);
+     showNewDeviceAlertIfFlagged();
+@@ -20,3 +21,4 @@ try{
+ }catch(err){
+   console.error("GymBot QC Master Admin dashboard failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-login.js b/js/main-login.js
+index 926ec1f..e636a28 100644
+--- a/js/main-login.js
++++ b/js/main-login.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initLoginUI } from "./ui/auth-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
+-  initLoginUI();
++  await ensureSeedDeveloper();
++  await initLoginUI();
+ }catch(err){
+   console.error("GymBot QC login page failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-onboarding.js b/js/main-onboarding.js
+index abaec3f..0949748 100644
+--- a/js/main-onboarding.js
++++ b/js/main-onboarding.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initOnboardingUI } from "./ui/onboarding-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
+-  initOnboardingUI();
++  await ensureSeedDeveloper();
++  await initOnboardingUI();
+ }catch(err){
+   console.error("GymBot QC onboarding page failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-owner-dashboard.js b/js/main-owner-dashboard.js
+index 20417e8..818e5e4 100644
+--- a/js/main-owner-dashboard.js
++++ b/js/main-owner-dashboard.js
+@@ -22,12 +22,12 @@ import { getGymById } from "./services/tenant-service.js";
+ import { showNewDeviceAlertIfFlagged } from "./ui/toast-ui.js";
+ import { ROLES } from "./config.js";
+ 
+-function getDevPreviewSession(){
++async function getDevPreviewSession(){
+   const params = new URLSearchParams(window.location.search);
+   const gymId = params.get("devview");
+   if(!gymId) return null;
+ 
+-  const realSession = getSession();
++  const realSession = await getSession();
+   if(!realSession || realSession.role !== ROLES.DEVELOPER){
+     // Not a Developer — never honor this param for anyone else.
+     // Fall through to the normal role-gated flow below, which will
+@@ -46,12 +46,13 @@ function getDevPreviewSession(){
+   };
+ }
+ 
++(async () => {
+ try{
+-  const preview = getDevPreviewSession();
++  const preview = await getDevPreviewSession();
+   if(preview){
+     renderOwnerShell(preview);
+   }else{
+-    const session = requireOwnerSession();
++    const session = await requireOwnerSession();
+     if(session){
+       renderOwnerShell(session);
+       showNewDeviceAlertIfFlagged();
+@@ -61,3 +62,4 @@ try{
+ }catch(err){
+   console.error("GymBot QC owner dashboard failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-register.js b/js/main-register.js
+index 10b2283..07a06de 100644
+--- a/js/main-register.js
++++ b/js/main-register.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initRegisterUI } from "./ui/auth-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
+-  initRegisterUI();
++  await ensureSeedDeveloper();
++  await initRegisterUI();
+ }catch(err){
+   console.error("GymBot QC register page failed to initialize:", err);
+ }
++})();
+diff --git a/js/services/auth-service.js b/js/services/auth-service.js
+index 7dd0e5e..1eb2f5c 100644
+--- a/js/services/auth-service.js
++++ b/js/services/auth-service.js
+@@ -1,420 +1,133 @@
+ /* ============================================================
+-   GYMBOT QC — AUTH SERVICE
+-   Users collection + session lifecycle. Pure logic + storage —
+-   no DOM. UI modules (auth-ui.js) and guards (auth-guard.js)
+-   are the only callers.
+-
+-   PASSWORD HASHING — READ THIS BEFORE PRODUCTION:
+-   `hashPassword()` below is a placeholder. It is NOT
+-   cryptographically secure — it exists only so a plaintext
+-   password never sits in localStorage verbatim during
+-   development. Before any real account is created:
+-     - Move registration/login behind a server endpoint.
+-     - Hash with bcrypt/argon2 server-side, salted per user.
+-     - Never ship password verification in client-side JS at all,
+-       since anyone can read this file and see exactly how
+-       "hashing" works.
+-   Every call site below is written against verifyPassword() /
+-   hashPassword(), so swapping the implementation later — or
+-   replacing this whole module with fetch() calls to a real
+-   backend — doesn't require touching auth-ui.js or auth-guard.js.
++   GYMBOT QC — AUTH SERVICE (backend-backed)
++   Same exported function names/shapes as the old localStorage
++   version, so auth-ui.js / auth-guard.js / onboarding-ui.js don't
++   need a rewrite — but every function is now async and talks to
++   the real API (see gymbot-qc-api) instead of localStorage.
++
++   SESSION MODEL: the server sets an httpOnly cookie on login/
++   register — JS can't read or forge it, unlike the old
++   localStorage session object. getSession()/getCurrentUser() ask
++   the server "who am I?" on every call (via GET /auth/me) rather
++   than trusting anything stored client-side. This is the actual
++   security boundary now; the old client-only version never had one.
+    ============================================================ */
+-import { CONFIG, ROLES, AUDIT_ACTIONS } from "../config.js";
+-import { storage, sessionStorageAdapter } from "../storage.js";
+-import { generateId, isValidEmail, sanitizeRecords, parseDeviceInfo } from "../utils.js";
+-import { createGym, getGymByOwnerId, isGymDeleted } from "./tenant-service.js";
+-import { recordAuditEntry } from "./audit-log-service.js";
+-import { logSystemEvent, updateSystemLogMeta } from "./dev-console-service.js";
+-import { lookupApproximateLocation } from "./login-geo-service.js";
+-import { SYSTEM_LOG_LEVELS, SYSTEM_LOG_CATEGORIES } from "../config.js";
+-
+-/* ---------- Users collection ---------- */
+-
+-// Every user record needs id/email/role to be usable anywhere in this
+-// file — a record missing one of those (a hand-edited localStorage
+-// value, a partial backup restore) is filtered out in memory rather
+-// than left in to crash the first `.email.toLowerCase()` call that
+-// touches it. Nothing is deleted from storage; see sanitizeRecords().
+-function getAllUsers(){
+-  return sanitizeRecords(storage.getJSON("users", [], { requireArray: true }), ["id", "email", "role"]);
+-}
+-
+-function saveAllUsers(users){
+-  return storage.setJSON("users", users);
+-}
+-
+-function findUserByEmail(email){
+-  const normalized = (email || "").trim().toLowerCase();
+-  return getAllUsers().find(u => typeof u.email === "string" && u.email.toLowerCase() === normalized) || null;
+-}
+-
+-/* ---------- Password placeholder (see file header) ---------- */
+-
+-function hashPassword(password){
+-  // NOT SECURE. Placeholder only — see module header.
+-  return "placeholder$" + btoa(unescape(encodeURIComponent(password))).split("").reverse().join("");
+-}
+-
+-function verifyPassword(password, hash){
+-  return hashPassword(password) === hash;
+-}
+-
+-/* ---------- Seed a default Developer account ---------- */
+-// Developer accounts aren't self-registrable (there's no public
+-// "sign up as Developer" flow) — so on first load we seed one
+-// demo Developer account if none exists yet, purely so this
+-// phase is testable end-to-end without a backend.
+-const SEED_DEVELOPER_EMAIL = "idollodi063@gmail.com";
+-const SEED_DEVELOPER_PASSWORD = "Caloypogi2009";
+-
+-export function ensureSeedDeveloper(){
+-  const users = getAllUsers();
+-  if(users.some(u => u.role === ROLES.DEVELOPER)) return;
+-  users.push({
+-    id: generateId("user"),
+-    email: SEED_DEVELOPER_EMAIL,
+-    passwordHash: hashPassword(SEED_DEVELOPER_PASSWORD),
+-    role: ROLES.DEVELOPER,
+-    gymId: null,
+-    createdAt: new Date().toISOString()
++import { ROLES } from "../config.js";
++
++// Point this at your deployed API. During local dev this is usually
++// http://localhost:3000; in production, your Railway/Render URL.
++const API_BASE = window.GYMBOT_API_BASE || "http://localhost:3000";
++
++async function apiFetch(path, options = {}){
++  const res = await fetch(`${API_BASE}${path}`, {
++    ...options,
++    credentials: "include", // sends/receives the httpOnly session cookie
++    headers: {
++      "Content-Type": "application/json",
++      ...(options.headers || {})
++    }
+   });
+-  saveAllUsers(users);
++  let body = null;
++  try{ body = await res.json(); }catch(err){ /* empty body, e.g. 204s */ }
++  return { ok: res.ok, status: res.status, body };
+ }
+ 
+-export function getSeedDeveloperHint(){return null;}
+-
+ /* ---------- Registration (Gym Owner only) ---------- */
+-// Developers are provisioned separately (seeded above, or later
+-// by another Developer from an admin tool) — the public register
+-// page only ever creates Gym Owner accounts + their gym.
+ 
+ /**
+  * @param {{gymName:string, email:string, password:string, confirmPassword:string}} fields
+- * @returns {{ok:boolean, error?:string, user?:object}}
++ * @returns {Promise<{ok:boolean, error?:string, user?:object}>}
+  */
+-export function registerGymOwner({ gymName, email, password, confirmPassword }){
+-  const cleanGymName = (gymName || "").trim();
+-  const cleanEmail = (email || "").trim().toLowerCase();
+-
+-  if(!cleanGymName){
+-    return { ok:false, error:"Please enter your gym's name." };
+-  }
+-  if(!cleanEmail || !isValidEmail(cleanEmail)){
+-    return { ok:false, error:"Please enter a valid email address." };
+-  }
+-  if(!password || password.length < CONFIG.MIN_PASSWORD_LEN){
+-    return { ok:false, error:`Password must be at least ${CONFIG.MIN_PASSWORD_LEN} characters.` };
+-  }
+-  if(password !== confirmPassword){
+-    return { ok:false, error:"Passwords don't match." };
+-  }
+-  if(findUserByEmail(cleanEmail)){
+-    return { ok:false, error:"An account with that email already exists." };
+-  }
+-
+-  const userId = generateId("user");
+-  const gym = createGym({ name: cleanGymName, ownerId: userId });
+-
+-  const user = {
+-    id: userId,
+-    email: cleanEmail,
+-    passwordHash: hashPassword(password),
+-    role: ROLES.GYM_OWNER,
+-    gymId: gym.id,
+-    createdAt: new Date().toISOString()
+-  };
+-
+-  const users = getAllUsers();
+-  users.push(user);
+-  saveAllUsers(users);
+-
+-  return { ok:true, user: toSafeUser(user) };
++export async function registerGymOwner({ gymName, email, password, confirmPassword }){
++  const { ok, body } = await apiFetch("/auth/register", {
++    method: "POST",
++    body: JSON.stringify({ gymName, email, password, confirmPassword })
++  });
++  if(!ok) return { ok:false, error: body?.error || "Registration failed. Please try again." };
++  return { ok:true, user: body.user };
+ }
+ 
+ /* ---------- Login / session ---------- */
+ 
+ /**
+  * @param {{email:string, password:string, rememberMe:boolean}} fields
+- * @returns {{ok:boolean, error?:string, user?:object}}
++ * @returns {Promise<{ok:boolean, error?:string, user?:object}>}
+  */
+-export function login({ email, password, rememberMe }){
+-  const cleanEmail = (email || "").trim();
+-  if(!cleanEmail || !isValidEmail(cleanEmail)){
+-    return { ok:false, error:"Please enter a valid email address." };
+-  }
+-  if(!password){
+-    return { ok:false, error:"Please enter your password." };
+-  }
+-
+-  const lockout = checkLoginLockout(cleanEmail);
+-  if(lockout.locked){
+-    return { ok:false, error:`Too many failed attempts. Try again in ${lockout.minutesLeft} minute${lockout.minutesLeft === 1 ? "" : "s"}.` };
+-  }
+-
+-  const user = findUserByEmail(cleanEmail);
+-  if(!user || !verifyPassword(password, user.passwordHash)){
+-    recordFailedLoginAttempt(cleanEmail);
+-    logLoginAttempt({ level: SYSTEM_LOG_LEVELS.WARNING, message: `Failed login attempt for ${cleanEmail}` });
+-    // Same message for "no such user" and "wrong password" —
+-    // don't leak which one it was.
+-    return { ok:false, error:"Incorrect email or password." };
+-  }
+-
+-  // Phase 8: a Developer-deleted gym account can't log back in. Data
+-  // stays put (see tenant-service.js's deleteGymForDeveloper) — this
+-  // only blocks the session, same "soft" spirit as Disabled.
+-  if(user.role === ROLES.GYM_OWNER && user.gymId){
+-    const gym = getGymByOwnerId(user.id);
+-    if(isGymDeleted(gym)){
+-      return { ok:false, error:"This account has been deleted. Contact GymBot QC support if you believe this is a mistake." };
+-    }
+-  }
+-
+-  clearLoginLockout(cleanEmail);
+-  const isNewDevice = isUnseenDevice(user.id);
+-  recordLastLogin(user.id);
+-  issueSession(user, !!rememberMe);
+-  logLoginAttempt({ level: SYSTEM_LOG_LEVELS.INFO, message: `Successful login: ${cleanEmail}`, userId: user.id, flagNewDevice: isNewDevice });
+-  return { ok:true, user: toSafeUser(user), newDeviceDetected: isNewDevice };
+-}
+-
+-/* ---------- Login lockout (brute-force throttling) ---------- */
+-// See CONFIG.LOGIN_LOCKOUT_* in config.js for the tunable numbers, and
+-// the storage-key comment for the shape of what's stored. Tracked by
+-// email in localStorage — this raises the cost of guessing from the
+-// same browser, it's not a substitute for real server-side rate
+-// limiting (which this client-only app has no server to do).
+-
+-function getAllLockouts(){
+-  const raw = storage.getJSON("loginLockouts", {});
+-  return (raw && typeof raw === "object") ? raw : {};
+-}
+-
+-/** @returns {{locked:boolean, minutesLeft?:number}} */
+-function checkLoginLockout(email){
+-  const all = getAllLockouts();
+-  const entry = all[email];
+-  if(!entry || !entry.lockedUntil) return { locked:false };
+-
+-  const msLeft = new Date(entry.lockedUntil).getTime() - Date.now();
+-  if(msLeft <= 0) return { locked:false };
+-
+-  return { locked:true, minutesLeft: Math.ceil(msLeft / 60000) };
+-}
+-
+-/** Appends a failed attempt for this email and, once
+- *  CONFIG.LOGIN_LOCKOUT_MAX_ATTEMPTS is reached within the trailing
+- *  window, sets lockedUntil. Best-effort — never throws. */
+-function recordFailedLoginAttempt(email){
+-  try{
+-    const all = getAllLockouts();
+-    const entry = all[email] || { attempts: [], lockedUntil: null };
+-    const windowStart = Date.now() - CONFIG.LOGIN_LOCKOUT_WINDOW_MS;
+-
+-    const recentAttempts = (entry.attempts || []).filter(iso => new Date(iso).getTime() >= windowStart);
+-    recentAttempts.push(new Date().toISOString());
+-
+-    const lockedUntil = recentAttempts.length >= CONFIG.LOGIN_LOCKOUT_MAX_ATTEMPTS
+-      ? new Date(Date.now() + CONFIG.LOGIN_LOCKOUT_DURATION_MS).toISOString()
+-      : null;
+-
+-    all[email] = { attempts: recentAttempts, lockedUntil };
+-    storage.setJSON("loginLockouts", all);
+-  }catch(err){
+-    // best-effort only
+-  }
+-}
+-
+-function clearLoginLockout(email){
+-  try{
+-    const all = getAllLockouts();
+-    if(all[email]){
+-      delete all[email];
+-      storage.setJSON("loginLockouts", all);
+-    }
+-  }catch(err){
+-    // best-effort only
+-  }
+-}
+-
+-/* ---------- New-device detection ---------- */
+-// A very lightweight "have we seen this browser before for this user"
+-// check, used to flag a login as worth a second look in the Security
+-// Center and to show the user a heads-up on their own next login. This
+-// is NOT a security boundary (a stolen password + same old browser still
+-// gets in silently) — it's a signal, same spirit as Google/Facebook's
+-// "new device" login emails.
+-
+-function getSeenDeviceKey(userId){
+-  return `gymbot_seen_device_${userId}`;
+-}
+-
+-/** @returns {boolean} true if this browser has no record of a previous
+- *  successful login for this user (i.e. this looks like a new device). */
+-function isUnseenDevice(userId){
+-  try{
+-    return window.localStorage.getItem(getSeenDeviceKey(userId)) === null;
+-  }catch(err){
+-    return false; // storage unavailable — don't falsely flag every login
+-  }
+-}
+-
+-function markDeviceSeen(userId){
+-  try{
+-    window.localStorage.setItem(getSeenDeviceKey(userId), new Date().toISOString());
+-  }catch(err){
+-    // best-effort only
+-  }
+-}
+-
+-/**
+- * Records a login-attempt system-log entry with device info attached
+- * immediately (from navigator.userAgent, always available synchronously),
+- * then kicks off a best-effort IP-geolocation lookup and patches the same
+- * entry's meta once/if it resolves — see login-geo-service.js for why
+- * that lookup is async and allowed to fail silently.
+- * Never blocks or throws; the login flow completes the same either way.
+- * @param {{level:string, message:string, userId?:string, flagNewDevice?:boolean}} fields
+- */
+-function logLoginAttempt({ level, message, userId, flagNewDevice }){
+-  const device = parseDeviceInfo(typeof navigator !== "undefined" ? navigator.userAgent : "");
+-  const entry = logSystemEvent({
+-    level,
+-    category: SYSTEM_LOG_CATEGORIES.LOGIN_ATTEMPT,
+-    message,
+-    meta: { device, newDevice: !!flagNewDevice }
++export async function login({ email, password }){
++  // rememberMe isn't passed to the server yet — the API issues a fixed
++  // 7-day cookie either way for now. Wire this through later if you
++  // want a shorter session for "not remembered" logins.
++  const { ok, body } = await apiFetch("/auth/login", {
++    method: "POST",
++    body: JSON.stringify({ email, password })
+   });
+-
+-  if(userId) markDeviceSeen(userId);
+-
+-  lookupApproximateLocation()
+-    .then(location => {
+-      if(location) updateSystemLogMeta(entry.id, { location });
+-    })
+-    .catch(() => { /* best-effort, see login-geo-service.js */ });
+-
+-  return entry;
++  if(!ok) return { ok:false, error: body?.error || "Incorrect email or password." };
++  return { ok:true, user: body.user };
+ }
+ 
+-/** Stamps lastLoginAt on the user record — read by the Developer Dashboard's
+- *  Gym Registry ("Last login" column). Best-effort only, never blocks login. */
+-function recordLastLogin(userId){
+-  try{
+-    const users = getAllUsers();
+-    const user = users.find(u => u.id === userId);
+-    if(!user) return;
+-    user.lastLoginAt = new Date().toISOString();
+-    saveAllUsers(users);
+-  }catch(err){ /* non-fatal */ }
++export async function logout(){
++  await apiFetch("/auth/logout", { method: "POST" });
+ }
+ 
+-function issueSession(user, rememberMe){
+-  const now = Date.now();
+-  const durationMs = rememberMe ? CONFIG.SESSION_DURATION_REMEMBER_MS : CONFIG.SESSION_DURATION_MS;
+-  const session = {
+-    userId: user.id,
+-    role: user.role,
+-    gymId: user.gymId,
+-    rememberMe: !!rememberMe,
+-    issuedAt: now,
+-    expiresAt: now + durationMs
+-  };
+-
+-  // Remembered sessions go in localStorage (survive closing the
+-  // browser); non-remembered sessions go in sessionStorage
+-  // (cleared when the tab closes) with a shorter expiry as a
+-  // backstop. Clear the other store so stale sessions can't
+-  // linger in both places at once.
+-  if(rememberMe){
+-    storage.setJSON("session", session);
+-    sessionStorageAdapter.remove("session");
+-  }else{
+-    sessionStorageAdapter.setJSON("session", session);
+-    storage.remove("session");
+-  }
++/** Asks the server who's currently logged in (via the session cookie).
++ *  @returns {Promise<object|null>} a session-shaped object, or null. */
++export async function getSession(){
++  const { ok, body } = await apiFetch("/auth/me");
++  if(!ok || !body?.user) return null;
++  const user = body.user;
++  return { userId: user.id, role: user.role, gymId: user.gymId };
+ }
+ 
+-/** @returns {object|null} the active session, or null if absent/expired (and clears it if expired) */
+-export function getSession(){
+-  const fromLocal = storage.getJSON("session", null);
+-  const fromSession = sessionStorageAdapter.getJSON("session", null);
+-  const session = fromLocal || fromSession;
+-  if(!session) return null;
+-
+-  if(!session.expiresAt || Date.now() > session.expiresAt){
+-    logout();
+-    return null;
+-  }
+-  return session;
++export async function isAuthenticated(){
++  return (await getSession()) !== null;
+ }
+ 
+-export function isAuthenticated(){
+-  return getSession() !== null;
++export async function getCurrentUser(){
++  const { ok, body } = await apiFetch("/auth/me");
++  if(!ok || !body?.user) return null;
++  return body.user;
+ }
+ 
+-export function getCurrentUser(){
+-  const session = getSession();
+-  if(!session) return null;
+-  const user = getAllUsers().find(u => u.id === session.userId) || null;
+-  return user ? toSafeUser(user) : null;
+-}
+-
+-export function logout(){
+-  storage.remove("session");
+-  sessionStorageAdapter.remove("session");
+-}
+-
+-/** Strips passwordHash before anything crosses into UI code.
+- *  Defense-in-depth null guard: getAllUsers() already filters out
+- *  malformed records, but this is cheap insurance against any future
+- *  call site that doesn't go through it. */
+-function toSafeUser(user){
+-  if(!user || typeof user !== "object") return null;
+-  const { passwordHash, ...safe } = user;
+-  return safe;
+-}
++/* ---------- No-ops kept for backward compatibility ----------
++   The old app seeded a demo Developer account client-side since
++   there was no backend to provision one. Real Developer accounts
++   are now created directly in the database (or via a future
++   Developer-invite endpoint) — there's nothing to seed from the
++   browser anymore. These stay as harmless no-ops so main-*.js
++   entry points don't need edits beyond adding `await`. */
++export async function ensureSeedDeveloper(){ /* no-op — see comment above */ }
++export function getSeedDeveloperHint(){ return null; }
+ 
+ /* ---------- Developer-only reads (Master Admin) ----------
+-   Same boundary style as tenant-service.js's getAllGymsForDeveloper():
+-   these don't gate access themselves, route guards (auth-guard.js) do.
+-   Never imported from owner-facing code (see owner-shell-ui.js's
+-   permission-boundary comment). */
++   TODO: these still need real API routes (GET /admin/users,
++   GET /admin/users/:id) — the gymbot-qc-api scaffold only has
++   /auth/* so far. Wire these up the same way as above once those
++   routes exist. Left as async stubs so callers (already updated to
++   await) don't break; they just return empty until the routes land. */
+ 
+-/** @returns {object[]} every user on the platform, passwordHash stripped. */
+-export function getAllUsersForDeveloper(){
+-  return getAllUsers().map(toSafeUser);
++/** @returns {Promise<object[]>} */
++export async function getAllUsersForDeveloper(){
++  console.warn("getAllUsersForDeveloper: backend route not built yet — returning [].");
++  return [];
+ }
+ 
+-/** @returns {object|null} a single user by id, passwordHash stripped. */
+-export function getUserByIdForDeveloper(userId){
+-  if(!userId) return null;
+-  const user = getAllUsers().find(u => u.id === userId) || null;
+-  return user ? toSafeUser(user) : null;
++/** @returns {Promise<object|null>} */
++export async function getUserByIdForDeveloper(userId){
++  console.warn("getUserByIdForDeveloper: backend route not built yet — returning null.");
++  return null;
+ }
+ 
+ /**
+- * PLACEHOLDER ONLY — see this file's header comment on password
+- * hashing. There is no email/SMS delivery and no backend yet, so this
+- * cannot actually send or set a new password. It exists so the
+- * Developer Dashboard has a real, honest action to click: it logs the
+- * request to the audit log and returns instructions, rather than
+- * silently pretending to reset anything.
+- * @returns {{ok:boolean, reason?:string, message?:string}}
++ * PLACEHOLDER — still true even with a real backend, since there's no
++ * email delivery wired up yet. TODO: replace with POST
++ * /admin/users/:id/reset-password once that route + an email
++ * provider exist.
++ * @returns {Promise<{ok:boolean, reason?:string, message?:string}>}
+  */
+-export function resetPasswordPlaceholder(userId, performedBy){
+-  const user = getAllUsers().find(u => u.id === userId);
+-  if(!user) return { ok: false, reason: "User not found." };
+-
+-  recordAuditEntry({
+-    action: AUDIT_ACTIONS.RESET_PASSWORD,
+-    gymId: null,
+-    performedBy,
+-    newValue: user.email,
+-    note: `Placeholder only — no real reset email was sent. Follow up with ${user.email} out of band until a real reset flow exists.`
+-  });
+-
++export async function resetPasswordPlaceholder(userId, performedBy){
++  console.warn("resetPasswordPlaceholder: backend route not built yet.");
+   return {
+     ok: true,
+-    message: `Logged a password-reset request for ${user.email}. This is a placeholder — there's no email/reset backend yet, so nothing was actually changed. Follow up with the owner directly for now.`
++    message: "Placeholder — there's no email/reset backend yet. Follow up with the owner directly for now."
+   };
+ }
+diff --git a/js/ui/admin-shell-ui.js b/js/ui/admin-shell-ui.js
+index 38428e0..5f5fee1 100644
+--- a/js/ui/admin-shell-ui.js
++++ b/js/ui/admin-shell-ui.js
+@@ -31,16 +31,16 @@ const PAGE_LABELS = Object.freeze({
+   "dev-console": "Developer Console"
+ });
+ 
+-export function renderAdminShell(session){
+-  const user = getCurrentUser();
++export async function renderAdminShell(session){
++  const user = await getCurrentUser();
+ 
+   document.getElementById("shellUserEmail").textContent = user ? user.email : "";
+   const roleBadgeEl = document.getElementById("shellRoleBadge");
+   roleBadgeEl.textContent = "Master Admin";
+   roleBadgeEl.classList.add("dev");
+ 
+-  document.getElementById("shellLogoutBtn").addEventListener("click", () => {
+-    logout();
++  document.getElementById("shellLogoutBtn").addEventListener("click", async () => {
++    await logout();
+     window.location.replace(ROUTES.LOGIN);
+   });
+ 
+diff --git a/js/ui/auth-ui.js b/js/ui/auth-ui.js
+index 7d060f9..7ab1bbf 100644
+--- a/js/ui/auth-ui.js
++++ b/js/ui/auth-ui.js
+@@ -23,8 +23,8 @@ function setLoading(button, isLoading){
+   button.setAttribute("data-loading", isLoading ? "true" : "false");
+ }
+ 
+-export function initLoginUI(){
+-  if(redirectIfAuthenticated()) return; // already logged in — bounced to dashboard
++export async function initLoginUI(){
++  if(await redirectIfAuthenticated()) return; // already logged in — bounced to dashboard
+ 
+   const form = document.getElementById("loginForm");
+   const emailInput = document.getElementById("loginEmail");
+@@ -57,8 +57,8 @@ if (hint) {
+ 
+     // Simulate the latency of a real auth request so the loading
+     // state is visible and this swaps cleanly for a fetch() later.
+-    setTimeout(() => {
+-      const result = login({
++    setTimeout(async () => {
++      const result = await login({
+         email: emailInput.value,
+         password: passwordInput.value,
+         rememberMe: rememberInput.checked
+@@ -93,8 +93,8 @@ if (hint) {
+   });
+ }
+ 
+-export function initRegisterUI(){
+-  if(redirectIfAuthenticated()) return;
++export async function initRegisterUI(){
++  if(await redirectIfAuthenticated()) return;
+ 
+   const form = document.getElementById("registerForm");
+   const gymNameInput = document.getElementById("registerGymName");
+@@ -110,8 +110,8 @@ export function initRegisterUI(){
+     hideAlert(alertEl);
+     setLoading(submitBtn, true);
+ 
+-    setTimeout(() => {
+-      const result = registerGymOwner({
++    setTimeout(async () => {
++      const result = await registerGymOwner({
+         gymName: gymNameInput.value,
+         email: emailInput.value,
+         password: passwordInput.value,
+diff --git a/js/ui/onboarding-ui.js b/js/ui/onboarding-ui.js
+index 2e60eaf..d32d373 100644
+--- a/js/ui/onboarding-ui.js
++++ b/js/ui/onboarding-ui.js
+@@ -32,8 +32,8 @@ let furthestStep = 1;
+ let session = null; // set once step 1 completes (or immediately, for an already-logged-in owner)
+ let chosenPlanId = CONFIG.SUBSCRIPTION_DEFAULT_PLAN_ID; // picked in step 6's plan picker, applied when step 7 starts the trial
+ 
+-export function initOnboardingUI(){
+-  const existing = getSession();
++export async function initOnboardingUI(){
++  const existing = await getSession();
+   if(existing && existing.role === ROLES.DEVELOPER){
+     window.location.replace(ROUTES.DASHBOARD);
+     return;
+@@ -134,14 +134,14 @@ function handleStep1(){
+   const confirmPassword = document.getElementById("wzConfirmPassword").value;
+ 
+   setLoading(true);
+-  setTimeout(() => {
+-    const result = registerGymOwner({ gymName, email, password, confirmPassword });
++  setTimeout(async () => {
++    const result = await registerGymOwner({ gymName, email, password, confirmPassword });
+     if(!result.ok){
+       setLoading(false);
+       showAlert(result.error, "error");
+       return;
+     }
+-    const loginResult = login({ email, password, rememberMe: true });
++    const loginResult = await login({ email, password, rememberMe: true });
+     setLoading(false);
+     if(!loginResult.ok){
+       // Extremely unlikely right after a successful register, but never
+@@ -149,7 +149,7 @@ function handleStep1(){
+       window.location.replace(`${ROUTES.LOGIN}?registered=1`);
+       return;
+     }
+-    session = getSession();
++    session = await getSession();
+     goToStep(2);
+   }, 350);
+ }
+diff --git a/js/ui/owner-shell-ui.js b/js/ui/owner-shell-ui.js
+index 8dc4821..f9bfce3 100644
+--- a/js/ui/owner-shell-ui.js
++++ b/js/ui/owner-shell-ui.js
+@@ -38,14 +38,14 @@ const PAGE_LABELS = Object.freeze({
+ });
+ 
+ /** Route guard for this page: Gym Owner role required, redirects otherwise. */
+-export function requireOwnerSession(){
++export async function requireOwnerSession(){
+   return requireRole(ROLES.GYM_OWNER);
+ }
+ 
+ let currentSession = null;
+ let currentGym = null;
+ 
+-export function renderOwnerShell(session){
++export async function renderOwnerShell(session){
+   const gym = session.gymId ? getGymById(session.gymId) : null;
+   currentSession = session;
+   currentGym = gym;
+@@ -70,10 +70,10 @@ export function renderOwnerShell(session){
+     });
+     renderDevPreviewBanner(gym);
+   }else{
+-    const user = getCurrentUser();
++    const user = await getCurrentUser();
+     document.getElementById("ownerUserEmail").textContent = user ? user.email : "";
+-    document.getElementById("ownerLogoutBtn").addEventListener("click", () => {
+-      logout();
++    document.getElementById("ownerLogoutBtn").addEventListener("click", async () => {
++      await logout();
+       window.location.replace(ROUTES.LOGIN);
+     });
+   }
