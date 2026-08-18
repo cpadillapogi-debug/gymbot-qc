@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Dashboard — GymBot QC</title>
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/owner-dashboard.css">
+<link rel="stylesheet" href="css/gcash-billing.css">
+</head>
+<body>
+
+<div class="owner-shell">
+
+  <button class="owner-menu-btn" id="ownerMenuBtn" type="button" aria-label="Open menu">☰</button>
+  <div class="owner-sidebar-scrim" id="ownerSidebarScrim"></div>
+
+  <aside class="owner-sidebar" id="ownerSidebar" aria-label="Dashboard navigation">
+    <div class="owner-sidebar-brand">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <nav class="owner-nav">
+      <a href="#dashboard" class="owner-nav-link" data-page="dashboard">📊 Dashboard</a>
+      <a href="#leads" class="owner-nav-link" data-page="leads">👥 Leads</a>
+      <a href="#ai-receptionist" class="owner-nav-link" data-page="ai-receptionist">🤖 AI Receptionist</a>
+      <a href="#settings" class="owner-nav-link" data-page="settings">⚙️ Business Settings</a>
+      <a href="#subscription" class="owner-nav-link" data-page="subscription">💳 Subscription</a>
+      <a href="#help" class="owner-nav-link" data-page="help">❓ Help &amp; Support</a>
+    </nav>
+  </aside>
+
+  <div class="owner-main">
+    <header class="owner-topbar">
+      <div class="owner-topbar-gym" id="ownerGymNameTop"></div>
+      <div class="owner-topbar-actions">
+        <span id="ownerNotifBellHost"></span>
+        <button class="btn btn-ghost btn-sm" id="ownerThemeToggle" type="button"></button>
+        <span class="owner-topbar-email" id="ownerUserEmail"></span>
+        <button class="btn btn-ghost btn-sm" id="ownerLogoutBtn" type="button">Log out</button>
+      </div>
+    </header>
+
+    <main class="owner-content">
+
+      <!-- Phase 11: Developer preview banner — only ever populated when
+           this tab was opened via ?devview=<gymId>, see main-owner-dashboard.js -->
+      <div id="ownerDevPreviewBannerHost"></div>
+
+      <!-- Phase 6: persistent billing status banner — shown above every
+           page, not just Subscription, so trial/payment/grace/suspension
+           warnings are never missed. See owner-billing-banner-ui.js. -->
+      <div id="ownerBillingBannerHost"></div>
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section class="owner-page active" id="page-dashboard" aria-labelledby="ownerWelcomeHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerWelcomeHeading">Welcome back</h1>
+          <p class="owner-page-sub">Here's how <span id="ownerWelcomeGymName">your gym</span> is doing today.</p>
+        </div>
+        <p class="demo-data-note">Cards marked <span class="demo-tag">demo</span> use sample data until AI conversation logs (Phase 4) and the full Lead CRM (Phase 5) are built. Trial bookings, new leads, and revenue below are already real.</p>
+        <div class="owner-metric-grid" id="ownerMetricGrid"><!-- injected --></div>
+        <div class="owner-panel">
+          <div class="owner-panel-head"><h3 style="margin:0;">Recent Activity</h3></div>
+          <div class="owner-activity-list" id="ownerRecentActivity"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- ===================== LEADS ===================== -->
+      <section class="owner-page" id="page-leads" aria-labelledby="ownerLeadsHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerLeadsHeading">Leads</h1>
+          <p class="owner-page-sub">Everyone your AI Receptionist has captured, in one pipeline.</p>
+        </div>
+
+        <div class="owner-metric-grid" id="ownerLeadsMetricGrid"><!-- injected --></div>
+
+        <div class="owner-panel">
+          <div class="owner-leads-toolbar">
+            <input type="text" id="ownerLeadsSearch" class="owner-leads-search" placeholder="Search by name or phone…">
+            <select id="ownerLeadsStatusFilter" aria-label="Filter by status"><!-- injected --></select>
+            <select id="ownerLeadsSort" aria-label="Sort leads">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="status">By status</option>
+            </select>
+            <span class="owner-leads-count" id="ownerLeadsCount">0 leads</span>
+            <div class="owner-leads-toolbar-actions">
+              <button class="btn btn-ghost btn-sm" id="ownerLeadsExportBtn" type="button">Export…</button>
+              <button class="btn btn-danger-outline btn-sm" id="ownerLeadsClearBtn" type="button">Clear leads</button>
+            </div>
+          </div>
+
+          <div class="owner-export-panel" id="ownerExportPanel" hidden><!-- injected --></div>
+
+          <div id="ownerLeadsList"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- Lead detail modal (shared across the Leads page) -->
+      <div class="owner-modal-scrim" id="ownerLeadModalScrim" hidden>
+        <div class="owner-modal" role="dialog" aria-modal="true" aria-labelledby="ownerLeadModalTitle">
+          <div class="owner-modal-head">
+            <h3 id="ownerLeadModalTitle">Lead details</h3>
+            <button class="owner-modal-close" id="ownerLeadModalClose" type="button" aria-label="Close">✕</button>
+          </div>
+          <div class="owner-modal-body" id="ownerLeadModalBody"><!-- injected --></div>
+        </div>
+      </div>
+
+      <!-- ===================== AI RECEPTIONIST ===================== -->
+      <section class="owner-page" id="page-ai-receptionist" aria-labelledby="ownerAiHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerAiHeading">AI Receptionist</h1>
+          <p class="owner-page-sub">Status and a live preview of what it currently knows how to say.</p>
+        </div>
+        <div id="ownerAiPageContent"><!-- injected --></div>
+      </section>
+
+      <!-- ===================== BUSINESS SETTINGS ===================== -->
+      <section class="owner-page" id="page-settings" aria-labelledby="ownerSettingsHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerSettingsHeading">Business Settings</h1>
+          <p class="owner-page-sub">This is what your AI Receptionist uses to answer customers — only visible and editable by you.</p>
+        </div>
+
+        <div class="owner-panel" id="ownerBusinessProfilePanel">
+          <h3>Business type &amp; region</h3>
+          <p class="help-text" style="margin-top:0;">Helps tailor terminology and pricing display. Saved separately from the form below.</p>
+          <p class="help-text" style="margin-top:0;">Currency here is a display preference only — actual billing still runs through GCash in Philippine Pesos regardless of what you pick, since that's the only payment method this platform currently supports.</p>
+          <div class="owner-settings-grid cols-2">
+            <div class="owner-field">
+              <label for="settingsBusinessType">Business type</label>
+              <select id="settingsBusinessType"><!-- injected --></select>
+            </div>
+            <div class="owner-field">
+              <label for="settingsCountry">Country</label>
+              <select id="settingsCountry"><!-- injected --></select>
+            </div>
+            <div class="owner-field">
+              <label for="settingsCurrency">Currency</label>
+              <select id="settingsCurrency"><!-- injected --></select>
+            </div>
+            <div class="owner-field">
+              <label for="settingsLanguage">Language</label>
+              <select id="settingsLanguage"><!-- injected --></select>
+            </div>
+          </div>
+          <div class="owner-settings-actions">
+            <button class="btn btn-ghost btn-sm" id="settingsBusinessProfileSaveBtn" type="button">Save business profile</button>
+            <div class="status-line" id="settingsBusinessProfileStatusLine" role="status"></div>
+          </div>
+        </div>
+
+        <form id="ownerSettingsForm">
+          <div class="owner-panel">
+            <h3>Gym profile</h3>
+            <div class="owner-settings-grid cols-2">
+              <div class="owner-field">
+                <label for="settingsGymName">Gym name</label>
+                <input type="text" id="settingsGymName" maxlength="300">
+              </div>
+              <div class="owner-field">
+                <label for="settingsLogoInput">Logo</label>
+                <div class="owner-file-row">
+                  <input type="file" id="settingsLogoInput" accept="image/*">
+                </div>
+                <div class="owner-file-name" id="settingsLogoFileName">No file chosen</div>
+                <p class="help-text">Placeholder for now — logo upload storage &amp; display isn't wired up yet.</p>
+              </div>
+              <div class="owner-field">
+                <label for="settingsAddress">Address</label>
+                <input type="text" id="settingsAddress" maxlength="300">
+              </div>
+              <div class="owner-field">
+                <label for="settingsContactNumber">Contact number</label>
+                <input type="text" id="settingsContactNumber" maxlength="300">
+              </div>
+              <div class="owner-field">
+                <label for="settingsFacebookUrl">Facebook page URL</label>
+                <input type="text" id="settingsFacebookUrl" maxlength="300" placeholder="https://facebook.com/yourgym">
+              </div>
+              <div class="owner-field">
+                <label for="settingsInstagramUrl">Instagram URL</label>
+                <input type="text" id="settingsInstagramUrl" maxlength="300" placeholder="https://instagram.com/yourgym">
+              </div>
+              <div class="owner-field">
+                <label for="settingsHours">Operating hours</label>
+                <input type="text" id="settingsHours" maxlength="300" placeholder="Mon–Sat 5AM–10PM, Sun 7AM–8PM">
+              </div>
+              <div class="owner-field">
+                <label for="settingsParkingAvailable">Parking availability</label>
+                <select id="settingsParkingAvailable">
+                  <option value="unspecified">Not specified</option>
+                  <option value="yes">Available</option>
+                  <option value="no">Not available</option>
+                </select>
+              </div>
+              <div class="owner-field cols-span-2">
+                <label for="settingsDescription">Gym description</label>
+                <textarea id="settingsDescription" maxlength="600" placeholder="What makes your gym stand out — vibe, specialties, equipment..."></textarea>
+                <p class="help-text">Used by your AI Receptionist to describe your gym in its own words — not just facts and figures.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="owner-panel">
+            <h3>What your AI Receptionist can offer</h3>
+            <div class="owner-settings-grid cols-2">
+              <div class="owner-field">
+                <label for="settingsTrainerAvailable">Personal trainers</label>
+                <select id="settingsTrainerAvailable">
+                  <option value="unspecified">Not specified</option>
+                  <option value="yes">Available</option>
+                  <option value="no">Not available</option>
+                </select>
+              </div>
+              <div class="owner-field">
+                <label for="settingsFreeTrialAvailable">Free trial sessions</label>
+                <select id="settingsFreeTrialAvailable">
+                  <option value="unspecified">Not specified</option>
+                  <option value="yes">Available</option>
+                  <option value="no">Not available</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="owner-panel">
+            <h3>Pricing</h3>
+            <div class="owner-settings-grid cols-2">
+              <div class="owner-field">
+                <label for="settingsMembershipFee">Membership fee</label>
+                <input type="text" id="settingsMembershipFee" maxlength="300" placeholder="₱1,200/month">
+              </div>
+              <div class="owner-field">
+                <label for="settingsWalkInFee">Walk-in fee</label>
+                <input type="text" id="settingsWalkInFee" maxlength="300" placeholder="₱150/session">
+              </div>
+              <div class="owner-field">
+                <label for="settingsStudentDiscount">Student discount</label>
+                <input type="text" id="settingsStudentDiscount" maxlength="300" placeholder="₱1,000/month with valid ID">
+              </div>
+              <div class="owner-field">
+                <label for="settingsPtRate">Personal trainer rates</label>
+                <input type="text" id="settingsPtRate" maxlength="300" placeholder="₱300/session add-on">
+              </div>
+            </div>
+          </div>
+
+          <div class="owner-panel">
+            <h3>What your AI Receptionist says</h3>
+            <div class="owner-field">
+              <label for="settingsWelcomeMessage">Welcome message</label>
+              <textarea id="settingsWelcomeMessage" maxlength="600" placeholder="Hi po! Welcome to..."></textarea>
+            </div>
+          </div>
+
+          <div class="owner-panel">
+            <h3>Frequently asked questions</h3>
+            <div class="owner-faq-list" id="settingsFaqList"><!-- injected --></div>
+            <button class="btn btn-ghost btn-sm" id="settingsAddFaqBtn" type="button">+ Add FAQ</button>
+          </div>
+
+          <div class="owner-settings-actions">
+            <button class="btn btn-primary" id="settingsSaveBtn" type="submit">Save settings</button>
+            <div class="status-line" id="settingsStatusLine" role="status"></div>
+          </div>
+        </form>
+
+        <div class="owner-panel">
+          <h3>Lead Routing</h3>
+          <p class="help-text" style="margin-top:0;">Choose where new leads go. Local CRM is always on — the rest are optional.</p>
+          <div class="owner-routing-list" id="ownerLeadRoutingContent"><!-- injected --></div>
+        </div>
+
+        <div class="owner-panel" id="ownerBackupPanel">
+          <h3>Data backup</h3>
+          <p class="help-text" style="margin-top:0;">Your leads and settings live only in this browser. Download a backup regularly, especially before clearing browser data or switching computers.</p>
+          <div class="owner-settings-actions">
+            <button class="btn btn-ghost btn-sm" id="ownerBackupExportBtn" type="button">Download backup (.json)</button>
+            <label class="btn btn-ghost btn-sm" for="ownerBackupImportInput" style="cursor:pointer;">Restore from backup
+              <input type="file" id="ownerBackupImportInput" accept="application/json" style="display:none;">
+            </label>
+          </div>
+          <div class="status-line" id="ownerBackupStatusLine" role="status"></div>
+        </div>
+      </section>
+
+      <!-- ===================== SUBSCRIPTION ===================== -->
+      <section class="owner-page" id="page-subscription" aria-labelledby="ownerSubscriptionHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerSubscriptionHeading">Subscription</h1>
+          <p class="owner-page-sub">Your plan, at a glance.</p>
+        </div>
+        <div id="ownerSubscriptionPageContent"><!-- injected --></div>
+      </section>
+
+      <!-- ===================== HELP & SUPPORT ===================== -->
+      <section class="owner-page" id="page-help" aria-labelledby="ownerHelpHeading">
+        <div class="owner-page-head">
+          <h1 id="ownerHelpHeading">Help &amp; Support</h1>
+          <p class="owner-page-sub">Common questions and how to reach us.</p>
+        </div>
+        <div id="ownerHelpPageContent"><!-- injected --></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<!-- Phase 6: full-account lock overlay, shown only when the subscription
+     status is Disabled. See owner-billing-banner-ui.js. -->
+<div class="owner-lock-overlay" id="ownerAccountLockOverlay" hidden></div>
+
+<script type="module" src="js/main-owner-dashboard.js"></script>
+</body>
+</html>
