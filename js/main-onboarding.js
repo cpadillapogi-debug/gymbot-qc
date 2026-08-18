@@ -4,9 +4,11 @@
 import { ensureSeedDeveloper } from "./services/auth-service.js";
 import { initOnboardingUI } from "./ui/onboarding-ui.js";
 
+(async () => {
 try{
-  ensureSeedDeveloper();
-  initOnboardingUI();
+  await ensureSeedDeveloper();
+  await initOnboardingUI();
 }catch(err){
   console.error("GymBot QC onboarding page failed to initialize:", err);
 }
+})();

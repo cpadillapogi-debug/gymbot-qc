@@ -22,12 +22,12 @@ import { getGymById } from "./services/tenant-service.js";
 import { showNewDeviceAlertIfFlagged } from "./ui/toast-ui.js";
 import { ROLES } from "./config.js";
 
-function getDevPreviewSession(){
+async function getDevPreviewSession(){
   const params = new URLSearchParams(window.location.search);
   const gymId = params.get("devview");
   if(!gymId) return null;
 
-  const realSession = getSession();
+  const realSession = await getSession();
   if(!realSession || realSession.role !== ROLES.DEVELOPER){
     // Not a Developer — never honor this param for anyone else.
     // Fall through to the normal role-gated flow below, which will
@@ -46,12 +46,13 @@ function getDevPreviewSession(){
   };
 }
 
+(async () => {
 try{
-  const preview = getDevPreviewSession();
+  const preview = await getDevPreviewSession();
   if(preview){
     renderOwnerShell(preview);
   }else{
-    const session = requireOwnerSession();
+    const session = await requireOwnerSession();
     if(session){
       renderOwnerShell(session);
       showNewDeviceAlertIfFlagged();
@@ -61,3 +62,4 @@ try{
 }catch(err){
   console.error("GymBot QC owner dashboard failed to initialize:", err);
 }
+})();

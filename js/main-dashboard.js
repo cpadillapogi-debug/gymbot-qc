@@ -10,8 +10,9 @@ import { requireRole } from "./auth-guard.js";
 import { renderAdminShell } from "./ui/admin-shell-ui.js";
 import { showNewDeviceAlertIfFlagged } from "./ui/toast-ui.js";
 
+(async () => {
 try{
-  const session = requireRole(ROLES.DEVELOPER);
+  const session = await requireRole(ROLES.DEVELOPER);
   if(session){
     renderAdminShell(session);
     showNewDeviceAlertIfFlagged();
@@ -20,3 +21,4 @@ try{
 }catch(err){
   console.error("GymBot QC Master Admin dashboard failed to initialize:", err);
 }
+})();

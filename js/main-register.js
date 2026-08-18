@@ -4,9 +4,11 @@
 import { ensureSeedDeveloper } from "./services/auth-service.js";
 import { initRegisterUI } from "./ui/auth-ui.js";
 
+(async () => {
 try{
-  ensureSeedDeveloper();
-  initRegisterUI();
+  await ensureSeedDeveloper();
+  await initRegisterUI();
 }catch(err){
   console.error("GymBot QC register page failed to initialize:", err);
 }
+})();
