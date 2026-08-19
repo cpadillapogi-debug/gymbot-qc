@@ -1,0 +1,241 @@
+diff --git a/js/main-login.js b/js/main-login.js
+index 926ec1f..6ad90f1 100644
+--- a/js/main-login.js
++++ b/js/main-login.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initLoginUI } from "./ui/auth-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
++  await ensureSeedDeveloper();
+   initLoginUI();
+ }catch(err){
+   console.error("GymBot QC login page failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-onboarding.js b/js/main-onboarding.js
+index abaec3f..f55492d 100644
+--- a/js/main-onboarding.js
++++ b/js/main-onboarding.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initOnboardingUI } from "./ui/onboarding-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
++  await ensureSeedDeveloper();
+   initOnboardingUI();
+ }catch(err){
+   console.error("GymBot QC onboarding page failed to initialize:", err);
+ }
++})();
+diff --git a/js/main-register.js b/js/main-register.js
+index 10b2283..906609d 100644
+--- a/js/main-register.js
++++ b/js/main-register.js
+@@ -4,9 +4,11 @@
+ import { ensureSeedDeveloper } from "./services/auth-service.js";
+ import { initRegisterUI } from "./ui/auth-ui.js";
+ 
++(async () => {
+ try{
+-  ensureSeedDeveloper();
++  await ensureSeedDeveloper();
+   initRegisterUI();
+ }catch(err){
+   console.error("GymBot QC register page failed to initialize:", err);
+ }
++})();
+diff --git a/js/services/auth-service.js b/js/services/auth-service.js
+index 7dd0e5e..898ea05 100644
+--- a/js/services/auth-service.js
++++ b/js/services/auth-service.js
+@@ -5,10 +5,13 @@
+    are the only callers.
+ 
+    PASSWORD HASHING — READ THIS BEFORE PRODUCTION:
+-   `hashPassword()` below is a placeholder. It is NOT
+-   cryptographically secure — it exists only so a plaintext
+-   password never sits in localStorage verbatim during
+-   development. Before any real account is created:
++   `hashPassword()` below uses real per-user-salted SHA-256 via the
++   browser's Web Crypto API — a real leaked hash now has to be
++   brute-forced, not just decoded in one line like the old base64
++   placeholder. It is still NOT production-grade: it's unsalted-work-
++   factor SHA-256 (fast to brute-force at scale, unlike bcrypt/argon2's
++   deliberately slow hashing), and it runs in client-side JS that
++   anyone can read. Before any real account is created:
+      - Move registration/login behind a server endpoint.
+      - Hash with bcrypt/argon2 server-side, salted per user.
+      - Never ship password verification in client-side JS at all,
+@@ -48,15 +51,38 @@ function findUserByEmail(email){
+   return getAllUsers().find(u => typeof u.email === "string" && u.email.toLowerCase() === normalized) || null;
+ }
+ 
+-/* ---------- Password placeholder (see file header) ---------- */
++/* ---------- Password hashing ----------
++   Still not a substitute for real server-side bcrypt/argon2 (see file
++   header) — this is client-side JS, so the algorithm is always visible
++   to anyone who opens dev tools. But unlike the old placeholder
++   (base64 + reverse, trivially invertible in one line), this is a
++   per-user-salted SHA-256 via the browser's real Web Crypto API, so a
++   leaked hash can't just be decoded back into the password — it has to
++   be brute-forced. Async because crypto.subtle is async; all callers
++   below await it. */
++
++function toHex(buffer){
++  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join("");
++}
++
++function generateSalt(){
++  const bytes = new Uint8Array(16);
++  crypto.getRandomValues(bytes);
++  return toHex(bytes);
++}
+ 
+-function hashPassword(password){
+-  // NOT SECURE. Placeholder only — see module header.
+-  return "placeholder$" + btoa(unescape(encodeURIComponent(password))).split("").reverse().join("");
++async function hashPassword(password, salt = generateSalt()){
++  const data = new TextEncoder().encode(salt + ":" + password);
++  const digest = await crypto.subtle.digest("SHA-256", data);
++  return `sha256$${salt}$${toHex(digest)}`;
+ }
+ 
+-function verifyPassword(password, hash){
+-  return hashPassword(password) === hash;
++async function verifyPassword(password, stored){
++  if(typeof stored !== "string") return false;
++  const [scheme, salt, hex] = stored.split("$");
++  if(scheme !== "sha256" || !salt || !hex) return false; // unknown/legacy format
++  const candidate = await hashPassword(password, salt);
++  return candidate === stored;
+ }
+ 
+ /* ---------- Seed a default Developer account ---------- */
+@@ -65,20 +91,35 @@ function verifyPassword(password, hash){
+ // demo Developer account if none exists yet, purely so this
+ // phase is testable end-to-end without a backend.
+ const SEED_DEVELOPER_EMAIL = "idollodi063@gmail.com";
+-const SEED_DEVELOPER_PASSWORD = "Caloypogi2009";
+ 
+-export function ensureSeedDeveloper(){
++// No hardcoded password here anymore — a real, unguessable one is
++// generated locally the first time this runs on a given browser, and
++// printed to the console ONCE so you (the developer) can copy it. It
++// is never written to source, so it can't leak through git the way
++// the old hardcoded value did. If you lose it, clear the "users" key
++// in localStorage/devtools to force a fresh one to be generated.
++function generateSeedPassword(){
++  const bytes = new Uint8Array(12);
++  crypto.getRandomValues(bytes);
++  return Array.from(bytes, b => b.toString(36).padStart(2, "0")).join("").slice(0, 16);
++}
++
++export async function ensureSeedDeveloper(){
+   const users = getAllUsers();
+   if(users.some(u => u.role === ROLES.DEVELOPER)) return;
++  const seedPassword = generateSeedPassword();
+   users.push({
+     id: generateId("user"),
+     email: SEED_DEVELOPER_EMAIL,
+-    passwordHash: hashPassword(SEED_DEVELOPER_PASSWORD),
++    passwordHash: await hashPassword(seedPassword),
+     role: ROLES.DEVELOPER,
+     gymId: null,
+     createdAt: new Date().toISOString()
+   });
+   saveAllUsers(users);
++  console.warn(
++    `[GymBot QC] First run: seeded a Developer account.\n  Email: ${SEED_DEVELOPER_EMAIL}\n  Password: ${seedPassword}\nThis is shown only this once — copy it now.`
++  );
+ }
+ 
+ export function getSeedDeveloperHint(){return null;}
+@@ -92,7 +133,7 @@ export function getSeedDeveloperHint(){return null;}
+  * @param {{gymName:string, email:string, password:string, confirmPassword:string}} fields
+  * @returns {{ok:boolean, error?:string, user?:object}}
+  */
+-export function registerGymOwner({ gymName, email, password, confirmPassword }){
++export async function registerGymOwner({ gymName, email, password, confirmPassword }){
+   const cleanGymName = (gymName || "").trim();
+   const cleanEmail = (email || "").trim().toLowerCase();
+ 
+@@ -118,7 +159,7 @@ export function registerGymOwner({ gymName, email, password, confirmPassword }){
+   const user = {
+     id: userId,
+     email: cleanEmail,
+-    passwordHash: hashPassword(password),
++    passwordHash: await hashPassword(password),
+     role: ROLES.GYM_OWNER,
+     gymId: gym.id,
+     createdAt: new Date().toISOString()
+@@ -137,7 +178,7 @@ export function registerGymOwner({ gymName, email, password, confirmPassword }){
+  * @param {{email:string, password:string, rememberMe:boolean}} fields
+  * @returns {{ok:boolean, error?:string, user?:object}}
+  */
+-export function login({ email, password, rememberMe }){
++export async function login({ email, password, rememberMe }){
+   const cleanEmail = (email || "").trim();
+   if(!cleanEmail || !isValidEmail(cleanEmail)){
+     return { ok:false, error:"Please enter a valid email address." };
+@@ -152,7 +193,7 @@ export function login({ email, password, rememberMe }){
+   }
+ 
+   const user = findUserByEmail(cleanEmail);
+-  if(!user || !verifyPassword(password, user.passwordHash)){
++  if(!user || !(await verifyPassword(password, user.passwordHash))){
+     recordFailedLoginAttempt(cleanEmail);
+     logLoginAttempt({ level: SYSTEM_LOG_LEVELS.WARNING, message: `Failed login attempt for ${cleanEmail}` });
+     // Same message for "no such user" and "wrong password" —
+diff --git a/js/ui/auth-ui.js b/js/ui/auth-ui.js
+index 7d060f9..63525c4 100644
+--- a/js/ui/auth-ui.js
++++ b/js/ui/auth-ui.js
+@@ -57,8 +57,8 @@ if (hint) {
+ 
+     // Simulate the latency of a real auth request so the loading
+     // state is visible and this swaps cleanly for a fetch() later.
+-    setTimeout(() => {
+-      const result = login({
++    setTimeout(async () => {
++      const result = await login({
+         email: emailInput.value,
+         password: passwordInput.value,
+         rememberMe: rememberInput.checked
+@@ -110,8 +110,8 @@ export function initRegisterUI(){
+     hideAlert(alertEl);
+     setLoading(submitBtn, true);
+ 
+-    setTimeout(() => {
+-      const result = registerGymOwner({
++    setTimeout(async () => {
++      const result = await registerGymOwner({
+         gymName: gymNameInput.value,
+         email: emailInput.value,
+         password: passwordInput.value,
+diff --git a/js/ui/onboarding-ui.js b/js/ui/onboarding-ui.js
+index 2e60eaf..e3aaa5d 100644
+--- a/js/ui/onboarding-ui.js
++++ b/js/ui/onboarding-ui.js
+@@ -134,14 +134,14 @@ function handleStep1(){
+   const confirmPassword = document.getElementById("wzConfirmPassword").value;
+ 
+   setLoading(true);
+-  setTimeout(() => {
+-    const result = registerGymOwner({ gymName, email, password, confirmPassword });
++  setTimeout(async () => {
++    const result = await registerGymOwner({ gymName, email, password, confirmPassword });
+     if(!result.ok){
+       setLoading(false);
+       showAlert(result.error, "error");
+       return;
+     }
+-    const loginResult = login({ email, password, rememberMe: true });
++    const loginResult = await login({ email, password, rememberMe: true });
+     setLoading(false);
+     if(!loginResult.ok){
+       // Extremely unlikely right after a successful register, but never

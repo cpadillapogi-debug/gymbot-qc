@@ -1,0 +1,78 @@
+/* ============================================================
+   GYMBOT QC — AUTH PAGES
+   Login, register, and the protected-page shell. Builds on the
+   tokens/components from base.css and components.css — only
+   auth-specific layout lives here.
+   ============================================================ */
+
+.auth-shell{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:32px 16px;
+}
+.auth-card{
+  width:100%;max-width:400px;
+  background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 26px;
+}
+.auth-logo{
+  display:flex;align-items:center;gap:10px;font-family:var(--font-display);
+  font-size:19px;font-weight:700;margin-bottom:22px;justify-content:center;
+}
+.auth-card h1{font-family:var(--font-display);font-size:22px;margin:0 0 6px;text-align:center;}
+.auth-sub{color:var(--text-dim);font-size:13.5px;text-align:center;margin:0 0 22px;}
+
+.auth-field{margin-bottom:16px;}
+.auth-field label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:5px;}
+.auth-field input[type="text"],
+.auth-field input[type="email"],
+.auth-field input[type="password"]{
+  width:100%;background:var(--bg-inset);border:1px solid var(--line);border-radius:6px;
+  padding:11px 12px;color:var(--text);font-size:14.5px;font-family:inherit;
+}
+.auth-field input:focus{border-color:var(--amber);}
+.auth-field .field-error{display:block;min-height:0;}
+
+.auth-remember{
+  display:flex;align-items:center;gap:8px;margin-bottom:18px;font-size:13.5px;color:var(--text-dim);
+}
+.auth-remember input{accent-color:var(--amber);width:15px;height:15px;}
+
+.auth-submit{width:100%;position:relative;}
+.auth-submit[data-loading="true"]{color:transparent;}
+.auth-spinner{
+  display:none;position:absolute;top:50%;left:50%;width:16px;height:16px;
+  margin:-8px 0 0 -8px;border:2px solid rgba(26,18,0,0.35);border-top-color:#1a1200;
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+.auth-submit[data-loading="true"] .auth-spinner{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.auth-spinner{animation:none;}}
+
+.auth-alert{
+  font-size:13.5px;padding:10px 12px;border-radius:6px;margin-bottom:16px;display:none;
+}
+.auth-alert.show{display:block;background:rgba(230,72,63,0.1);color:var(--red);border:1px solid rgba(230,72,63,0.3);}
+.auth-alert.show.success{background:rgba(62,207,126,0.1);color:var(--green);border-color:rgba(62,207,126,0.3);}
+
+.auth-footer-link{text-align:center;font-size:13.5px;color:var(--text-dim);margin-top:18px;}
+.auth-footer-link a{color:var(--amber);text-decoration:none;font-weight:600;}
+.auth-footer-link a:hover{text-decoration:underline;}
+
+.auth-hint{
+  margin-top:16px;padding:10px 12px;background:var(--bg-inset);border:1px dashed var(--line);
+  border-radius:6px;font-size:12px;color:var(--text-faint);
+}
+.auth-hint code{font-size:11.5px;}
+
+/* ---------- Protected-page shell (dashboard placeholder) ---------- */
+.app-shell-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--line);background:var(--bg-raised);
+}
+.app-shell-user{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim);}
+.role-badge{
+  font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;
+  padding:3px 9px;border-radius:20px;background:var(--amber-dim);color:var(--amber);
+}
+.role-badge.dev{background:rgba(62,207,126,0.15);color:var(--green);}

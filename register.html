@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Register your gym — GymBot QC</title>
+<meta name="description" content="Create a GymBot QC account for your gym.">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<main class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <h1>Register your gym</h1>
+    <p class="auth-sub">Creates a Gym Owner account, scoped to your gym only.</p>
+    <p class="auth-sub" style="margin-top:-14px;">Prefer a guided walkthrough (pricing, hours, testing the AI) instead? Try <a href="onboarding.html">Getting Started</a>.</p>
+
+    <div class="auth-alert" id="registerAlert" role="alert"></div>
+
+    <form id="registerForm" novalidate>
+      <div class="auth-field">
+        <label for="registerGymName">Gym name</label>
+        <input type="text" id="registerGymName" autocomplete="organization" required placeholder="Commonwealth Fitness Hub">
+      </div>
+      <div class="auth-field">
+        <label for="registerEmail">Email</label>
+        <input type="email" id="registerEmail" autocomplete="email" required placeholder="you@yourgym.com">
+      </div>
+      <div class="auth-field">
+        <label for="registerPassword">Password</label>
+        <input type="password" id="registerPassword" autocomplete="new-password" required placeholder="At least 8 characters">
+      </div>
+      <div class="auth-field">
+        <label for="registerConfirmPassword">Confirm password</label>
+        <input type="password" id="registerConfirmPassword" autocomplete="new-password" required placeholder="Re-enter your password">
+      </div>
+      <button type="submit" class="btn btn-primary auth-submit" id="registerSubmit">
+        Create account
+        <span class="auth-spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <p class="auth-footer-link">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+</main>
+
+<script type="module" src="js/main-register.js"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Master Admin — GymBot QC</title>
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/owner-dashboard.css">
+<link rel="stylesheet" href="css/admin-dashboard.css">
+<link rel="stylesheet" href="css/gcash-billing.css">
+</head>
+<body>
+
+<div class="owner-shell">
+
+  <button class="owner-menu-btn" id="ownerMenuBtn" type="button" aria-label="Open menu">☰</button>
+  <div class="owner-sidebar-scrim" id="ownerSidebarScrim"></div>
+
+  <aside class="owner-sidebar" id="ownerSidebar" aria-label="Master Admin navigation">
+    <div class="owner-sidebar-brand">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <nav class="owner-nav">
+      <a href="#overview" class="owner-nav-link" data-page="overview">📊 Overview</a>
+      <a href="#gym-registry" class="owner-nav-link" data-page="gym-registry">🏢 Gym Registry</a>
+      <a href="#audit-log" class="owner-nav-link" data-page="audit-log">📜 Audit Log</a>
+      <a href="#billing" class="owner-nav-link" data-page="billing">💳 GCash Billing</a>
+      <!-- Hidden by default. Click the "GB" brand mark above 5 times within
+           3 seconds to reveal (see wireHiddenDevConsoleTrigger in
+           admin-dev-console-ui.js). Gym Owners never reach this page at
+           all — dashboard.html is DEVELOPER-only end to end. -->
+      <a href="#dev-console" class="owner-nav-link" data-page="dev-console" id="devConsoleNavLink" hidden>🛠 Developer Console</a>
+    </nav>
+  </aside>
+
+  <div class="owner-main">
+    <header class="owner-topbar">
+      <div class="owner-topbar-gym">
+        <span id="shellRoleBadge" class="role-badge"></span>
+      </div>
+      <div class="owner-topbar-actions">
+        <span id="shellNotifBellHost"></span>
+        <button class="btn btn-ghost btn-sm" id="shellThemeToggle" type="button"></button>
+        <span class="owner-topbar-email" id="shellUserEmail"></span>
+        <button class="btn btn-ghost btn-sm" id="shellLogoutBtn" type="button">Log out</button>
+      </div>
+    </header>
+
+    <main class="owner-content">
+
+      <!-- ===================== OVERVIEW ===================== -->
+      <section class="owner-page active" id="page-overview" aria-labelledby="adminOverviewHeading">
+        <div class="owner-page-head">
+          <h1 id="adminOverviewHeading">Master Admin</h1>
+          <p class="owner-page-sub">Platform-wide status across every gym on GymBot QC.</p>
+        </div>
+        <div id="adminOverviewContent"><!-- injected --></div>
+      </section>
+
+      <!-- ===================== GYM REGISTRY ===================== -->
+      <section class="owner-page" id="page-gym-registry" aria-labelledby="adminRegistryHeading">
+        <div class="owner-page-head">
+          <h1 id="adminRegistryHeading">Gym Registry</h1>
+          <p class="owner-page-sub">Every gym tenant that has ever registered, and its current owner, plan, and subscription status.</p>
+        </div>
+
+        <div class="owner-panel">
+          <div class="owner-leads-toolbar">
+            <input type="text" id="adminRegistrySearch" class="owner-leads-search" placeholder="Search by gym name, owner email, or gym ID…">
+            <select id="adminRegistryStatusFilter" aria-label="Filter by subscription status"><!-- injected --></select>
+            <select id="adminRegistryPlanFilter" aria-label="Filter by plan"><!-- injected --></select>
+            <select id="adminRegistryAiFilter" aria-label="Filter by AI status">
+              <option value="">All AI status</option>
+              <option value="on">AI on</option>
+              <option value="off">AI off</option>
+            </select>
+            <select id="adminRegistryDateFilter" aria-label="Filter by registration date">
+              <option value="">Any registration date</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+            <select id="adminRegistrySort" aria-label="Sort gyms">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="name">By gym name</option>
+              <option value="leads">Most leads</option>
+            </select>
+            <label class="help-text" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+              <input type="checkbox" id="adminRegistryShowDeleted"> Show deleted
+            </label>
+            <span class="owner-leads-count" id="adminRegistryCount">0 gyms</span>
+          </div>
+
+          <div id="adminRegistryList"><!-- injected --></div>
+          <div class="owner-leads-toolbar" id="adminRegistryPager" style="justify-content:center;"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- ===================== AUDIT LOG & SECURITY (Phase 13) ===================== -->
+      <section class="owner-page" id="page-audit-log" aria-labelledby="adminAuditLogHeading">
+        <div class="owner-page-head">
+          <h1 id="adminAuditLogHeading">Developer Audit Log</h1>
+          <p class="owner-page-sub">Every account/subscription-changing action taken from this dashboard, most recent first.</p>
+        </div>
+        <div class="dev-console-layout">
+          <nav class="dev-console-tabs audit-tabs" aria-label="Audit &amp; security sections">
+            <button class="dev-console-tab audit-tab active" data-audit-tab="log" type="button">Audit Log</button>
+            <button class="dev-console-tab audit-tab" data-audit-tab="security" type="button">Security Center</button>
+          </nav>
+          <div class="dev-console-body" id="adminAuditContent"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- ===================== GCASH BILLING (Phase 10) ===================== -->
+      <section class="owner-page" id="page-billing" aria-labelledby="adminBillingHeading">
+        <div class="owner-page-head">
+          <h1 id="adminBillingHeading">Pending Payments</h1>
+          <p class="owner-page-sub">GCash payment approvals, payment settings, the commission engine, and platform revenue.</p>
+        </div>
+        <div class="dev-console-layout">
+          <nav class="dev-console-tabs billing-tabs" aria-label="Billing sections">
+            <button class="dev-console-tab billing-tab active" data-billing-tab="pending" type="button">Pending Payments</button>
+            <button class="dev-console-tab billing-tab" data-billing-tab="history" type="button">Payment History</button>
+            <button class="dev-console-tab billing-tab" data-billing-tab="gcash" type="button">GCash Settings</button>
+            <button class="dev-console-tab billing-tab" data-billing-tab="commission" type="button">Commission Engine</button>
+            <button class="dev-console-tab billing-tab" data-billing-tab="revenue" type="button">Revenue</button>
+          </nav>
+          <div class="dev-console-body" id="adminBillingContent"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- ===================== DEVELOPER CONSOLE (Phase 9) ===================== -->
+      <section class="owner-page" id="page-dev-console" aria-labelledby="devConsoleHeading">
+        <div class="owner-page-head">
+          <h1 id="devConsoleHeading">Developer Console</h1>
+          <p class="owner-page-sub">Internal system configuration — Gemini AI tuning, the master system prompt, diagnostics, logs, backups, integrations, database utilities, feature flags, and version info. Not visible to Gym Owners.</p>
+        </div>
+        <div class="dev-console-layout">
+          <nav class="dev-console-tabs" aria-label="Developer Console sections">
+            <button class="dev-console-tab active" data-tab="ai" type="button">AI Configuration</button>
+            <button class="dev-console-tab" data-tab="prompt" type="button">Master System Prompt</button>
+            <button class="dev-console-tab" data-tab="diagnostics" type="button">System Diagnostics</button>
+            <button class="dev-console-tab" data-tab="logs" type="button">Logs</button>
+            <button class="dev-console-tab" data-tab="backup" type="button">Backup & Restore</button>
+            <button class="dev-console-tab" data-tab="integrations" type="button">Integration Hub</button>
+            <button class="dev-console-tab" data-tab="database" type="button">Database Utilities</button>
+            <button class="dev-console-tab" data-tab="salesdemo" type="button">Sales Demo</button>
+            <button class="dev-console-tab" data-tab="flags" type="button">Feature Flags</button>
+            <button class="dev-console-tab" data-tab="version" type="button">Version</button>
+          </nav>
+          <div class="dev-console-body" id="devConsoleContent"><!-- injected --></div>
+        </div>
+      </section>
+
+      <!-- Gym detail modal (shared, used from both pages) -->
+      <div class="owner-modal-scrim" id="adminGymModalScrim" hidden>
+        <div class="owner-modal" role="dialog" aria-modal="true" aria-labelledby="adminGymModalTitle">
+          <div class="owner-modal-head">
+            <h3 id="adminGymModalTitle">Gym details</h3>
+            <button class="owner-modal-close" id="adminGymModalClose" type="button" aria-label="Close">✕</button>
+          </div>
+          <div class="owner-modal-body" id="adminGymModalBody"><!-- injected --></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<script type="module" src="js/main-dashboard.js"></script>
+</body>
+</html>

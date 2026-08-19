@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>GymBot QC — Chat</title>
+<meta name="description" content="Chat with this gym's AI receptionist — ask about membership, trainers, or book a free trial.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%234d8dff'/%3E%3Ctext x='16' y='21' font-family='sans-serif' font-size='13' font-weight='700' fill='white' text-anchor='middle'%3EGB%3C/text%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  /* Standalone widget shell — this page is meant to be opened directly
+     or embedded in an <iframe> (see owner-ai-page-ui.js's Embed panel),
+     never as part of the full marketing site chrome (no topbar/hero). */
+  body{ background:transparent; margin:0; padding:0; }
+  .widget-shell{ max-width:480px; margin:0 auto; padding:16px; box-sizing:border-box; }
+  .widget-state{ text-align:center; padding:48px 20px; color:var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="widget-shell">
+
+  <!-- Shown while we look up ?gym= and this gym's settings/subscription. -->
+  <div class="widget-state" id="widgetLoading">Loading chat…</div>
+
+  <!-- Shown instead of the chat card for any of: missing ?gym=, unknown/
+       deleted gym, or a gym whose AI Receptionist is suspended/unpaid —
+       see main-widget.js's init() for exactly which message goes here. -->
+  <div class="widget-state" id="widgetUnavailable" hidden></div>
+
+  <!-- The real chat — identical structure to index.html's demo chat card,
+       so chat-ui.js/booking-ui.js work unmodified against either page. -->
+  <article class="chat-card" id="widgetChatCard" aria-label="GymBot chat" hidden>
+    <div class="chat-header">
+      <div class="chat-avatar" aria-hidden="true">GB</div>
+      <div class="chat-header-text">
+        <div class="name" id="widgetGymName">GymBot QC</div>
+        <div class="status"><span class="status-dot" id="chatStatusDot" aria-hidden="true"></span> <span id="chatStatusText">Active now</span></div>
+      </div>
+    </div>
+
+    <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Chat conversation"></div>
+
+    <div class="quick-replies" id="quickReplies">
+      <button class="chip" data-msg="Magkano po ang monthly membership?">Membership rates</button>
+      <button class="chip" data-msg="May trainers po ba kayo?">Trainers</button>
+      <button class="chip" data-msg="Pwede po free trial?">Book free trial</button>
+      <button class="chip" data-msg="Anong oras po kayo bukas?">Hours</button>
+    </div>
+
+    <form class="chat-input-row" id="chatForm">
+      <label for="chatInput" class="sr-only">Type a message</label>
+      <input type="text" id="chatInput" maxlength="500" autocomplete="off"
+             placeholder="Type your question..." />
+      <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">➤</button>
+    </form>
+  </article>
+
+</div>
+
+<script type="module" src="js/main-widget.js"></script>
+</body>
+</html>

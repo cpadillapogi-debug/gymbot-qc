@@ -1,0 +1,46 @@
+/* ============================================================
+   GYMBOT QC — MASTER ADMIN DASHBOARD (Phase 7)
+   dashboard.html reuses the .owner-shell/.owner-sidebar/.owner-page/
+   .owner-panel/.owner-metric-grid/.owner-table/.owner-modal/
+   .owner-sub-status-badge scaffolding from owner-dashboard.css
+   wholesale — it's generic dashboard-shell chrome, not
+   Gym-Owner-specific. Only the handful of Master-Admin-only bits
+   live here.
+   ============================================================ */
+
+.admin-status-chip-row{display:flex;flex-wrap:wrap;gap:10px;}
+.admin-status-chip{
+  display:flex;align-items:center;gap:8px;background:var(--bg-inset);border:1px solid var(--line);
+  border-radius:20px;padding:6px 8px 6px 12px;
+}
+.admin-status-chip-count{font-weight:800;font-size:13px;color:var(--text);}
+
+/* ---------- Phase 9: Hidden Developer Console ---------- */
+.dev-console-layout{display:flex;gap:20px;align-items:flex-start;}
+.dev-console-tabs{
+  display:flex;flex-direction:column;gap:2px;flex:0 0 200px;
+  background:var(--bg-inset);border:1px solid var(--line);border-radius:10px;padding:6px;
+}
+.dev-console-tab{
+  background:transparent;border:none;text-align:left;padding:9px 12px;border-radius:7px;
+  color:var(--text-dim);font-size:13.5px;cursor:pointer;
+}
+.dev-console-tab:hover{background:var(--bg-hover,rgba(255,255,255,0.04));color:var(--text);}
+.dev-console-tab.active{background:var(--amber-dim,rgba(255,193,7,0.15));color:var(--amber);font-weight:600;}
+.dev-console-body{flex:1;min-width:0;}
+.owner-form-group{margin-bottom:14px;display:flex;flex-direction:column;gap:5px;}
+.owner-form-group label{font-size:12.5px;color:var(--text-faint);font-weight:600;}
+.owner-form-group input[type="text"],
+.owner-form-group input[type="number"],
+.owner-form-group input[type="password"],
+.owner-form-group select,
+.owner-form-group textarea{
+  background:var(--bg-inset);border:1px solid var(--line);border-radius:7px;color:var(--text);
+  padding:9px 11px;font-size:13.5px;font-family:inherit;
+}
+#devConsoleNavLink[hidden]{display:none;}
+
+@media (max-width:720px){
+  .dev-console-layout{flex-direction:column;}
+  .dev-console-tabs{flex-direction:row;flex-wrap:wrap;flex:1 1 auto;width:100%;}
+}

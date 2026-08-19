@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Pricing — GymBot QC</title>
+<meta name="description" content="GymBot QC pricing: Starter, Pro, and Elite plans for Philippine gyms. No setup fees, cancel anytime.">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<div class="topbar">
+  <nav class="topbar-inner" aria-label="Primary">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">GB</span>
+      <span>GymBot QC</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="index.html" class="btn btn-ghost btn-sm">Home</a>
+      <a href="register.html" class="btn btn-ghost btn-sm">Register your gym</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Log in</a>
+    </div>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Pricing</p>
+    <h1>One flat fee. <em>No setup costs, no surprises.</em></h1>
+    <p class="lede">Every plan includes the full 24/7 AI receptionist. Higher plans add the Lead CRM, sync, and multi-branch support. Prices in PHP, per month, per branch — these are the exact prices billed inside the app, not a marketing estimate.</p>
+  </div>
+</header>
+
+<main>
+  <section id="plans" aria-labelledby="plans-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="plans-heading">Choose a plan</h2>
+        <p>Every new gym starts on a 14-day free trial of the Pro plan — no card required to try it.</p>
+      </div>
+      <div class="pricing-grid" id="pricingPlanCards"></div>
+    </div>
+  </section>
+
+  <section id="compare" aria-labelledby="compare-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="compare-heading">Compare plans</h2>
+        <p>Same feature list the subscription system enforces — nothing here is aspirational.</p>
+      </div>
+      <div class="panel" style="overflow-x:auto;">
+        <table class="owner-table" id="pricingCompareTable" style="min-width:520px;"></table>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing-faq" aria-labelledby="pricing-faq-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pricing-faq-heading">Pricing questions</h2>
+      </div>
+      <details>
+        <summary>Can I switch plans later?</summary>
+        <div class="audit-body"><p>Yes — request an upgrade or downgrade from your Subscription page anytime. A Developer applies it, and your next invoice reflects the new plan's price.</p></div>
+      </details>
+      <details>
+        <summary>What happens if a payment is late?</summary>
+        <div class="audit-body"><p>There's a short grace period before AI replies pause, with in-app and (where configured) notification warnings first. See the Help &amp; Support page inside your dashboard for the exact timeline.</p></div>
+      </details>
+      <details>
+        <summary>How do I pay?</summary>
+        <div class="audit-body"><p>Currently via GCash: upload a proof-of-payment screenshot from your Subscription page and a Developer approves it, usually same-day. A card/auto-charge option is on the roadmap — see the Launch Guide.</p></div>
+      </details>
+      <details>
+        <summary>Is there a contract or lock-in?</summary>
+        <div class="audit-body"><p>No. Cancel anytime from your Subscription page; there are no multi-month commitments or cancellation fees.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <section id="pricing-cta" aria-labelledby="pricing-cta-heading">
+    <div class="wrap" style="text-align:center;">
+      <h2 id="pricing-cta-heading">Ready to try it?</h2>
+      <p>Start a free 14-day trial — no card required.</p>
+      <a href="onboarding.html" class="btn btn-primary">Start free trial</a>
+      <a href="index.html#chat" class="btn btn-ghost">Try the live demo first</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">GymBot QC — a demo built for independent gyms in Quezon City. Not affiliated with Google or Meta.</div>
+</footer>
+
+<script type="module" src="js/main-pricing.js"></script>
+</body>
+</html>

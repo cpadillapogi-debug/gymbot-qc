@@ -1,0 +1,73 @@
+/* ============================================================
+   GYMBOT QC — BASE
+   Design tokens, reset, and global typography.
+   Dark, gym-floor aesthetic. Iron/charcoal base, hazard-tape
+   amber for action, a single accent red for "live/urgent" cues.
+   ============================================================ */
+:root{
+  --bg:#14171a;
+  --bg-raised:#1c2024;
+  --bg-inset:#0f1113;
+  --line:#2c3136;
+  --text:#eef0f2;
+  --text-dim:#9aa2ab;
+  --text-faint:#666e77;
+  --amber:#f2b807;
+  --amber-dim:#7a5f08;
+  --red:#e6483f;
+  --green:#3ecf7e;
+  --blue:#4d8dff;
+  --purple:#a06bff;
+  --teal:#2bb3a3;
+  --radius:10px;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* ---------- Light mode (Phase 3) ----------
+   Opt-in via [data-theme="light"] on <html>, toggled by
+   theme-toggle-ui.js. Dark (the tokens above) stays the
+   default for every page that doesn't set this attribute —
+   the marketing/demo pages keep their gym-floor look; the
+   Owner Dashboard is where people actually toggle this. */
+html[data-theme="light"]{
+  --bg:#f5f6f8;
+  --bg-raised:#ffffff;
+  --bg-inset:#eef0f3;
+  --line:#dde1e6;
+  --text:#1a1d21;
+  --text-dim:#5b626b;
+  --text-faint:#8a919a;
+  --amber:#c98f04;
+  --amber-dim:#f2dfa8;
+  --red:#c93a32;
+  --green:#1f9d5c;
+  --blue:#2a63c9;
+  --purple:#7a3fd1;
+  --teal:#1b8577;
+}
+html[data-theme="light"] .logo-mark,
+html[data-theme="light"] .chat-avatar{ color:#fff8e6; }
+html[data-theme="light"] code{ color:#8a5f00; }
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;}
+button{font-family:inherit;}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+code{background:var(--bg-inset);padding:1px 6px;border-radius:4px;font-family:var(--font-mono);font-size:12.5px;color:var(--amber);}
