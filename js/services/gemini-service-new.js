@@ -1,21 +1,37 @@
 /* ============================================================
-   GYMBOT QC — GEMINI SERVICE (Gemini fully disabled, Aug 2026)
-   PATCH: this module no longer calls the Gemini API or the
-   Cloudflare proxy at all. GymBot QC now answers entirely from:
+   GYMBOT QC — GEMINI SERVICE
+   PATCH (this session): re-enabled. GEMINI_DISABLED flipped back
+   to false — the Cloudflare proxy at CONFIG.AI_PROXY_URL is live
+   and holds the real key server-side (see
+   docs/AI_PROXY_SETUP.md), so calling it is now safe: no key
+   ever reaches the browser.
+
+   Order of resolution, unchanged from the disabled period:
      1. The gym owner's own saved FAQs (Business Settings)
      2. The built-in generic FAQ list (faq-response-service.js)
-     3. A plain fallback message if neither matches
-   This removes any dependency on an API key, a working proxy,
-   or Google's model availability — nothing here makes a network
-   call. The original Gemini/proxy code is kept below but is now
-   unreachable (GEMINI_DISABLED short-circuits before it), in case
-   you ever want to re-enable it later by flipping that flag back
-   to false.
+     3. Gemini, via the proxy — only reached if neither above matched
+     4. A plain fallback message if that also fails
+   This keeps FAQ answers instant/free and only spends Gemini
+   quota on questions nothing else covers.
 
-   Typed reasons still returned when nothing matches:
-   "no_faq_match" (nothing in owner FAQs or the generic list
-   covered this message) — chat-ui.js turns this into the normal
-   customer-safe fallback reply via fallback-response-service.js.
+   BUGFIX (this session): attemptGemini() used to require a
+   locally-saved API key (loadApiKey()) before it would even
+   check whether a proxy is configured. That's backwards for the
+   real per-gym widget — an actual customer on their own phone has
+   never saved anything into the Setup panel (that's the
+   Developer's own single global key), so every real customer hit
+   "no_key" and the proxy path — the entire point of which is
+   "customers on their own devices get a response" — was
+   unreachable. Now: when CONFIG.AI_PROXY_URL is set, no local key
+   is required at all, since the proxy doesn't need one from the
+   browser. The direct-to-Google fallback path (no proxy
+   configured) still requires a locally-saved key, same as before.
+
+   Typed reasons still returned when nothing matches/fails:
+   "no_faq_match" (nothing in owner FAQs, the generic list, or
+   Gemini covered this message) — chat-ui.js turns any failure
+   reason into the normal customer-safe fallback reply via
+   fallback-response-service.js.
    ============================================================ */
 import { CONFIG } from "../config.js";
 import { clampText, delay } from "../utils.js";
@@ -26,10 +42,9 @@ import { getDevAiConfig, logSystemEvent } from "./dev-console-service.js";
 import { SYSTEM_LOG_LEVELS, SYSTEM_LOG_CATEGORIES } from "../config.js";
 import { matchFaqIntent, matchOwnerFaq, logUnansweredQuestion } from "./faq-response-service.js";
 
-// PATCH: flip to false to re-enable the Gemini/proxy call path below for
-// anything the FAQ lists don't cover. Currently forced true — no Gemini
-// calls happen anywhere in this app while this is true.
-const GEMINI_DISABLED = true;
+// Flip to true to force everything back to FAQ-only with zero network
+// calls (e.g. if the proxy or Gemini quota is ever having problems).
+const GEMINI_DISABLED = false;
 
 // Reasons worth retrying with backoff — everything else is either
 // permanent (bad key) or the customer's own connection (offline),
@@ -74,8 +89,11 @@ export async function callGemini(userMessage, history, memorySummary, gymInfoOve
     return { ok:false, reason:"no_faq_match" };
   }
 
+  // A local key is only required for the direct-to-Google fallback path.
+  // When a proxy is configured, the browser never needs (or has) a key —
+  // see this file's header for why the old unconditional check was a bug.
   const apiKey = loadApiKey().trim();
-  if(!apiKey){
+  if(!apiKey && !CONFIG.AI_PROXY_URL){
     return { ok:false, reason:"no_key" };
   }
   if(!isOnline()){
@@ -112,7 +130,7 @@ export async function callGemini(userMessage, history, memorySummary, gymInfoOve
 }
 
 /** @returns {Promise<{ok:boolean, text?:string, reason?:string}>} single attempt, never throws
- *  NOTE: unreachable while GEMINI_DISABLED is true (kept for future re-enable). */
+ *  */
 async function attemptGemini(apiKey, systemPrompt, contents, timeoutMs, devConfig){
   const model = (devConfig && devConfig.model) || CONFIG.GEMINI_MODEL;
   const temperature = devConfig ? devConfig.temperature : 0.7;
@@ -160,7 +178,7 @@ async function attemptGemini(apiKey, systemPrompt, contents, timeoutMs, devConfi
 }
 
 /**
- * NOTE: unreachable while GEMINI_DISABLED is true (kept for future re-enable).
+ *
  */
 async function attemptGeminiViaProxy({ model, temperature, maxOutputTokens, systemPrompt, contents, timeoutMs }){
   const controller = new AbortController();
@@ -194,8 +212,6 @@ async function attemptGeminiViaProxy({ model, temperature, maxOutputTokens, syst
 
 /**
  * Manual "Test connection" check for the Setup panel.
- * NOTE: with GEMINI_DISABLED true this will report reason "no_faq_match"
- * for any test message, since no Gemini call happens — that's expected.
  * @param {string} [apiKeyOverride] test an unsaved key straight from the input
  * @returns {Promise<{ok:boolean, reason?:string}>}
  */
@@ -204,7 +220,7 @@ export async function testGeminiConnection(apiKeyOverride){
     return { ok:false, reason:"no_faq_match" };
   }
   const apiKey = (apiKeyOverride !== undefined ? apiKeyOverride : loadApiKey()).trim();
-  if(!apiKey) return { ok:false, reason:"no_key" };
+  if(!apiKey && !CONFIG.AI_PROXY_URL) return { ok:false, reason:"no_key" };
   if(!isOnline()) return { ok:false, reason:"offline" };
 
   const result = await attemptGemini(
