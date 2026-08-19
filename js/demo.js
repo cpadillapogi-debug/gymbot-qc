@@ -35,8 +35,8 @@ async function runDemo(){
 
     for(const step of DEMO_SCRIPT){
       if(step.role === "booking"){
-        saveLead(Object.assign({ gymId: DEMO_GYM_ID, source: "Demo" }, step.data));
-        appState.set({ leads: getLeads(DEMO_GYM_ID) });
+        await saveLead(Object.assign({ gymId: DEMO_GYM_ID, source: "Demo" }, step.data));
+        appState.set({ leads: await getLeads(DEMO_GYM_ID) });
         await delay(500);
         continue;
       }
