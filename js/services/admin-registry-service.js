@@ -66,7 +66,7 @@ export async function getGymRegistry(){
       requestedPlanId: sub.requestedPlanId,
       requestedPlanName: requestedPlan ? requestedPlan.name : null,
       aiEnabled: access.aiEnabled,
-      leadsCount: getLeads(gym.id).length,
+      leadsCount: (await getLeads(gym.id)).length,
       invoiceCount: invoices.length,
       latestInvoiceStatus: invoices.length > 0 ? invoices[0].status : null
     };
@@ -101,7 +101,7 @@ export async function getGymDetail(gymId){
     trialDaysRemaining: getTrialDaysRemaining(sub),
     amountDue: getAmountDue(sub),
     paymentStatusLabel: getPaymentStatusLabel(sub),
-    leadsCount: getLeads(gymId).length,
+    leadsCount: (await getLeads(gymId)).length,
     invoices: getInvoicesForGym(gymId),
     gymName: settings && settings.gymName ? settings.gymName : gym.name
   };

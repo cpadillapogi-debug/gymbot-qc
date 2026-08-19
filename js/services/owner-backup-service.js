@@ -26,7 +26,7 @@ import { getLeads, replaceLeadsForGym } from "./leads-service.js";
 
 /** @param {string} gymId
  *  @returns {object} a JSON-safe backup of just this gym's own data. */
-export function exportOwnerBackup(gymId){
+export async function exportOwnerBackup(gymId){
   return {
     exportedAt: new Date().toISOString(),
     appVersion: CONFIG.APP_VERSION,
@@ -35,7 +35,7 @@ export function exportOwnerBackup(gymId){
     data: {
       businessSettings: getBusinessSettings(gymId),
       gymPlatformConfig: getGymPlatformConfig(gymId),
-      leads: getLeads(gymId)
+      leads: await getLeads(gymId)
     }
   };
 }
@@ -50,7 +50,7 @@ export function exportOwnerBackup(gymId){
  * once called.
  * @returns {{ok:boolean, reason?:string}}
  */
-export function importOwnerBackup(gymId, backupObject){
+export async function importOwnerBackup(gymId, backupObject){
   if(!gymId){
     return { ok:false, reason:"No gym selected." };
   }
@@ -71,7 +71,7 @@ export function importOwnerBackup(gymId, backupObject){
       saveGymPlatformConfig(gymId, gymPlatformConfig);
     }
     if(Array.isArray(leads)){
-      replaceLeadsForGym(gymId, leads);
+      await replaceLeadsForGym(gymId, leads);
     }
   }catch(err){
     return { ok:false, reason:"Restore failed while writing data. Some fields may not have been restored." };
