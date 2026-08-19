@@ -82,11 +82,15 @@ export function initOwnerLeadsPage(gymId){
   });
   wireExportPanel();
 
-  els.clearBtn.addEventListener("click", () => {
+  els.clearBtn.addEventListener("click", async () => {
     if(!window.confirm("Delete every lead for this gym? This can't be undone.")) return;
-    clearLeads(currentGymId);
-    refreshOwnerLeadsPage();
-    showToast("Leads cleared.");
+    try{
+      await clearLeads(currentGymId);
+      await refreshOwnerLeadsPage();
+      showToast("Leads cleared.");
+    }catch(err){
+      showToast(err.message || "Couldn't clear leads.");
+    }
   });
 
   els.modalClose.addEventListener("click", closeLeadModal);
@@ -95,11 +99,11 @@ export function initOwnerLeadsPage(gymId){
   refreshOwnerLeadsPage();
 }
 
-export function refreshOwnerLeadsPage(){
+export async function refreshOwnerLeadsPage(){
   if(!els) cacheEls();
-  renderMetrics();
-  renderList();
-  if(selectedLeadId) renderModalBody(getLeadById(currentGymId, selectedLeadId));
+  await renderMetrics();
+  await renderList();
+  if(selectedLeadId) renderModalBody(await getLeadById(currentGymId, selectedLeadId));
 }
 
 /* ---------- Stat cards ---------- */
@@ -110,8 +114,8 @@ function formatMetric(value, format){
   return String(value);
 }
 
-function renderMetrics(){
-  const metrics = getLeadCrmMetrics(getLeads(currentGymId));
+async function renderMetrics(){
+  const metrics = getLeadCrmMetrics(await getLeads(currentGymId));
   els.metricGrid.innerHTML = METRIC_DEFS.map(def => `
     <div class="owner-metric-card">
       <div class="owner-metric-num">${escapeHtml(formatMetric(metrics[def.key], def.format))}</div>
@@ -122,9 +126,9 @@ function renderMetrics(){
 
 /* ---------- Filter / sort / search ---------- */
 
-function getFilteredSortedLeads(){
+async function getFilteredSortedLeads(){
   const searchTerm = filters.search.trim().toLowerCase();
-  let leads = getLeads(currentGymId).filter(l => {
+  let leads = (await getLeads(currentGymId)).filter(l => {
     if(filters.status && l.status !== filters.status) return false;
     if(!searchTerm) return true;
     const haystack = `${l.name || ""} ${l.phone || ""}`.toLowerCase();
@@ -143,9 +147,9 @@ function getFilteredSortedLeads(){
 
 /* ---------- Table ---------- */
 
-function renderList(){
-  const leads = getFilteredSortedLeads();
-  const total = getLeads(currentGymId).length;
+async function renderList(){
+  const leads = await getFilteredSortedLeads();
+  const total = (await getLeads(currentGymId)).length;
   els.count.textContent = filters.search || filters.status
     ? `${leads.length} of ${total} lead${total === 1 ? "" : "s"}`
     : `${total} lead${total === 1 ? "" : "s"}`;
@@ -177,11 +181,11 @@ function renderList(){
     btn.addEventListener("click", () => openLeadModal(btn.getAttribute("data-view-lead")));
   });
   els.list.querySelectorAll("[data-status-select]").forEach(select => {
-    select.addEventListener("change", () => {
-      const result = updateLeadStatus(currentGymId, select.getAttribute("data-status-select"), select.value);
+    select.addEventListener("change", async () => {
+      const result = await updateLeadStatus(currentGymId, select.getAttribute("data-status-select"), select.value);
       if(result.ok){
         showToast(`Status updated to "${select.value}".`);
-        refreshOwnerLeadsPage();
+        await refreshOwnerLeadsPage();
       }else{
         showToast(result.reason || "Couldn't update status.");
       }
@@ -211,8 +215,8 @@ function rowHtml(lead){
 
 /* ---------- Lead detail modal ---------- */
 
-function openLeadModal(leadId){
-  const lead = getLeadById(currentGymId, leadId);
+async function openLeadModal(leadId){
+  const lead = await getLeadById(currentGymId, leadId);
   if(!lead) return;
   selectedLeadId = leadId;
   els.modalTitle.textContent = lead.name || "Lead details";
@@ -275,32 +279,32 @@ function renderModalBody(lead){
     </div>
   `;
 
-  document.getElementById("leadStatusSelect").addEventListener("change", e => {
-    const result = updateLeadStatus(currentGymId, lead.id, e.target.value);
+  document.getElementById("leadStatusSelect").addEventListener("change", async e => {
+    const result = await updateLeadStatus(currentGymId, lead.id, e.target.value);
     if(result.ok){
       showToast(`Status updated to "${e.target.value}".`);
-      refreshOwnerLeadsPage();
+      await refreshOwnerLeadsPage();
     }else{
       showToast(result.reason || "Couldn't update status.");
     }
   });
 
-  document.getElementById("leadNotesSaveBtn").addEventListener("click", () => {
+  document.getElementById("leadNotesSaveBtn").addEventListener("click", async () => {
     const notes = document.getElementById("leadNotesInput").value;
-    const result = updateLeadNotes(currentGymId, lead.id, notes);
+    const result = await updateLeadNotes(currentGymId, lead.id, notes);
     if(result.ok){
       showToast("Notes saved.");
-      refreshOwnerLeadsPage();
+      await refreshOwnerLeadsPage();
     }else{
       showToast(result.reason || "Couldn't save notes.");
     }
   });
 
-  document.getElementById("leadDeleteBtn").addEventListener("click", () => {
+  document.getElementById("leadDeleteBtn").addEventListener("click", async () => {
     if(!window.confirm(`Delete ${lead.name || "this lead"}? This can't be undone.`)) return;
-    deleteLead(currentGymId, lead.id);
+    await deleteLead(currentGymId, lead.id);
     closeLeadModal();
-    refreshOwnerLeadsPage();
+    await refreshOwnerLeadsPage();
     showToast("Lead deleted.");
   });
 }
@@ -335,18 +339,18 @@ function wireExportPanel(){
   document.getElementById("ownerExportJsonBtn").addEventListener("click", () => runExport("json"));
 }
 
-function getExportLeads(){
+async function getExportLeads(){
   if(exportScope === "filtered") return getFilteredSortedLeads();
   if(exportScope === "range"){
     const from = document.getElementById("ownerExportFrom").value;
     const to = document.getElementById("ownerExportTo").value;
-    return filterLeadsByDateRange(getLeads(currentGymId), from, to);
+    return filterLeadsByDateRange(await getLeads(currentGymId), from, to);
   }
   return getLeads(currentGymId);
 }
 
-function runExport(format){
-  const leads = getExportLeads();
+async function runExport(format){
+  const leads = await getExportLeads();
   if(leads.length === 0){
     showToast("No leads to export for that selection.");
     return;

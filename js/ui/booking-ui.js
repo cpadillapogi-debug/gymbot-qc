@@ -65,7 +65,7 @@ export function showBookingForm(gymId){
   card.querySelector("#confirmBookingBtn").addEventListener("click", () => confirmBooking(card, targetGymId));
 }
 
-function confirmBooking(card, gymId){
+async function confirmBooking(card, gymId){
   const nameInput = card.querySelector("#bkName");
   const phoneInput = card.querySelector("#bkPhone");
   const timeSelect = card.querySelector("#bkTime");
@@ -84,17 +84,27 @@ function confirmBooking(card, gymId){
 
   // Phase 12: real per-gym widget passes its own gymId here so the lead
   // lands in that gym's actual Leads CRM instead of the reserved demo id.
-  const { lead } = captureLead({
-    gymId,
-    name: cleanName,
-    phone: cleanPhone,
-    preferredTime: timeSelect.value,
-    goal: goalSelect.value,
-    source: "Website"
-  });
+  // captureLead now hits the real API for a real gymId (leads-service.js),
+  // so this can genuinely fail (network/auth) — surface that instead of
+  // assuming success like the old localStorage-only version could.
+  let lead;
+  try{
+    ({ lead } = await captureLead({
+      gymId,
+      name: cleanName,
+      phone: cleanPhone,
+      preferredTime: timeSelect.value,
+      goal: goalSelect.value,
+      source: "Website"
+    }));
+  }catch(err){
+    phoneErr.textContent = err.message || "Couldn't book your trial. Please try again.";
+    phoneErr.style.display = "block";
+    return;
+  }
 
   // Keep AppState in sync so the dashboard re-renders (index.html demo only).
-  appState.set({ leads: getLeads(gymId) });
+  appState.set({ leads: await getLeads(gymId) });
 
   card.innerHTML = `<div class="booking-confirmed">✓ Booked! See you soon, ${escapeHtml(lead.name)}.</div>`;
   appendMessage("bot", `Salamat, ${lead.name}! Trial session confirmed for ${lead.preferredTime.toLowerCase()}. Bring a towel and water — see you at the gym! 💪`);

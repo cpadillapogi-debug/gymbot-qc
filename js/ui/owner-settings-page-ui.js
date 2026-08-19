@@ -311,8 +311,8 @@ function initBackupPanel(gymId){
   const statusLine = document.getElementById("ownerBackupStatusLine");
   if(!exportBtn || !importInput || !statusLine) return;
 
-  exportBtn.addEventListener("click", () => {
-    const backup = exportOwnerBackup(gymId);
+  exportBtn.addEventListener("click", async () => {
+    const backup = await exportOwnerBackup(gymId);
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -335,7 +335,7 @@ function initBackupPanel(gymId){
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       let parsed = null;
       try{
         parsed = JSON.parse(String(reader.result || ""));
@@ -346,7 +346,7 @@ function initBackupPanel(gymId){
         return;
       }
 
-      const result = importOwnerBackup(gymId, parsed);
+      const result = await importOwnerBackup(gymId, parsed);
       statusLine.className = "status-line " + (result.ok ? "ok" : "err");
       statusLine.textContent = result.ok
         ? "Backup restored. Reloading…"

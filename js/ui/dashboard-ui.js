@@ -58,21 +58,21 @@ export function renderDashboard(){
   });
 }
 
-export function initDashboardUI(){
+export async function initDashboardUI(){
   cacheEls();
 
   // Seed state from storage, then re-render any time it changes.
-  appState.set({ leads: getLeads(DEMO_GYM_ID) });
+  appState.set({ leads: await getLeads(DEMO_GYM_ID) });
   appState.subscribe(state => {
     // Cheap enough to always re-render; this app has no perf
     // pressure that would justify a diffing layer.
     renderDashboard();
   });
 
-  els.clearLeadsBtn.addEventListener("click", () => {
+  els.clearLeadsBtn.addEventListener("click", async () => {
     if(!window.confirm("Clear all saved leads on this device? This can't be undone.")) return;
-    clearLeads(DEMO_GYM_ID);
-    appState.set({ leads: getLeads(DEMO_GYM_ID) });
+    await clearLeads(DEMO_GYM_ID);
+    appState.set({ leads: await getLeads(DEMO_GYM_ID) });
     showToast("Leads cleared.");
   });
 
