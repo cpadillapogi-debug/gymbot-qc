@@ -5,13 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Log in — GymBot QC</title>
 <meta name="description" content="Log in to your GymBot QC account.">
-
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/auth.css">
 </head>
 <body>
-
 <main class="auth-shell">
   <div class="auth-card">
     <div class="auth-logo">
@@ -20,9 +18,7 @@
     </div>
     <h1>Welcome back</h1>
     <p class="auth-sub">Log in to manage your gym's AI receptionist.</p>
-
     <div class="auth-alert" id="loginAlert" role="alert"></div>
-
     <form id="loginForm" novalidate>
       <div class="auth-field">
         <label for="loginEmail">Email</label>
@@ -41,13 +37,11 @@
         <span class="auth-spinner" aria-hidden="true"></span>
       </button>
     </form>
-
     <div class="auth-hint" id="devHint"></div>
-
     <p class="auth-footer-link">Don't have an account? <a href="register.html">Register your gym</a></p>
   </div>
 </main>
-
+<script src="js/api-config.js"></script>
 <script type="module" src="js/main-login.js"></script>
 </body>
 </html>

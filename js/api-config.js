@@ -1,0 +1,1 @@
+window.GYMBOT_API_BASE = "https://gymbot-qc-api.onrender.com";
